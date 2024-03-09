@@ -1,0 +1,6 @@
+from tables.TeacherInstanceDBEntry import *
+from tables.TeacherInstanceDBEntry import TeacherInstanceDBEntry
+from tables.ClassroomInstanceDBEntry import *
+from tables.ClassroomInstanceDBEntry import ClassroomInstanceDBEntry
+from tables.FacilityInstanceDBEntry import *
+from tables.FacilityInstanceDBEntry import FacilityInstanceDBEntry

@@ -1,0 +1,7 @@
+.idea
+__pycache__
+*.pyc
+*.xml
+
+# local database files, only used for testing
+*.db
