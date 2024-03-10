@@ -18,6 +18,7 @@ class ChildInstanceDBEntry(Base):
     __tablename__ = "child"
 
     id = Column(Integer, primary_key = True, autoincrement = True)
+    uuid = db.Column(db.String(Config.UUID_TOKEN_LENGTH), unique=True)
     firstname = Column(String(64))
     lastname = Column(String(64))
 
@@ -35,6 +36,7 @@ class ChildInstanceDBEntry(Base):
         self.firstname = childInstance.firstname
         self.lastname = childInstance.lastname
         self.age = childInstance.age
+        self.uuid = secrets.token_urlsafe(Config.UUID_TOKEN_LENGTH)  
 
 
     def __repr__(self):
