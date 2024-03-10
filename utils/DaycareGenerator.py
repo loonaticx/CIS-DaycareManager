@@ -1,12 +1,8 @@
 """
-Generates arbitrary tires
+Generates arbitrary daycares
 """
-import math
 import random
-from dataclasses import dataclass
-
 from base.DatabaseDriver import *
-from config.Config import Config
 from tables.ChildInstance import ChildInstance
 from tables.ChildInstanceDBEntry import ChildInstanceDBEntry
 from tables.ClassroomInstance import ClassroomInstance
@@ -148,14 +144,14 @@ class DaycareGenerator:
         )
         return TeacherInstanceDBEntry(teacher)
 
-    def _generateChildEntry(self,classroom: ClassroomInstanceDBEntry) -> ChildInstanceDBEntry:
+    def _generateChildEntry(self, classroom: ClassroomInstanceDBEntry) -> ChildInstanceDBEntry:
         childFirstName = random.choice(firstNames)
         childLastName = random.choice(lastNames)
         childAge = random.randint(1, 10)
         child = ChildInstance(
             firstname = childFirstName,
             lastname = childLastName,
-            age=childAge,
+            age = childAge,
             room = classroom
         )
         return ChildInstanceDBEntry(child)
@@ -206,13 +202,13 @@ class DaycareGenerator:
 
 if __name__ == "__main__":
     """
-    Driver code; when ran, will insert arbitrary tire entries into the database.
+    Driver code; when ran, will insert arbitrary day care entries into the database.
     """
     # Generate our DB
     # database = DatabaseManager(Config)
     # database.initSession()
 
     facilityAmt = 2
-    for genTire in DaycareGenerator(Database).generateDaycares(facilityAmt, (1, 10)):
-        Database.generateEntry(genTire)
+    for genDaycare in DaycareGenerator(Database).generateDaycares(facilityAmt, (1, 10)):
+        Database.generateEntry(genDaycare)
     print(f"Generated {facilityAmt} daycares!")

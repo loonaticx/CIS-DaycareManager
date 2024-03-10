@@ -6,7 +6,6 @@ import sqlalchemy as db
 
 from sqlalchemy import create_engine, update
 from sqlalchemy.engine import URL
-from sqlalchemy.sql import text
 
 from base.ConnectionType import ConnectionType
 import sys
@@ -60,7 +59,7 @@ class DatabaseManager:
         self.session.add(dbEntry)
         self.session.commit()
 
-    def getTableContents(self, dbEntry, tableEntries:list=None):
+    def getTableContents(self, dbEntry, tableEntries: list = None):
         if not dbEntry:
             return None
         if not tableEntries:
@@ -77,8 +76,6 @@ class DatabaseManager:
                 return None
             itemId = itemEntry.pop('id')
             itemDict[itemId] = itemEntry
-
-        print(f"id - {itemDict}")
         return itemDict
 
 

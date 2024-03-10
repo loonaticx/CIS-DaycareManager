@@ -1,15 +1,10 @@
-from uuid import uuid4
-
-from tables.ClassroomInstance import ClassroomInstance
-from tables.FacilityInstance import FacilityInstance
-
 from base.DatabaseDriver import *
 from tables.TeacherInstance import TeacherInstance
 
 
 class TeacherInstanceDBEntry(Base):
     """
-    Skeleton for a db entry in the "inventory" table.
+    Skeleton for a db entry in the teacher table.
 
     Will be added into the database upon init
     """
@@ -21,14 +16,7 @@ class TeacherInstanceDBEntry(Base):
     lastname = Column(String(64))
     uuid = db.Column(db.String(Config.UUID_TOKEN_LENGTH), unique = True)
     classroom_id = Column(Integer, ForeignKey("classroom.id"))
-    # classroom_uuid = Column(db.String, ForeignKey("classroom.uuid", use_alter = True))
     classroom = relationship('ClassroomInstanceDBEntry', foreign_keys = [classroom_id])
-
-    # classroom = relationship('ClassroomInstanceDBEntry', backref = 'classroom', lazy = 'dynamic',
-    #                          foreign_keys = "[ClassroomInstanceDBEntry.id, ClassroomInstanceDBEntry.uuid]")
-
-    # classroom = relationship('ClassroomInstanceDBEntry',  backref = 'classroom', lazy = 'dynamic', foreign_keys =
-    # "[ClassroomInstanceDBEntry.id, ClassroomInstanceDBEntry.uuid]")
     children = relationship("ChildInstanceDBEntry", back_populates = "teacher")
     _childids = Column(db.String(512), default = '')
 
