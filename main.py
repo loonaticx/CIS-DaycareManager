@@ -38,6 +38,8 @@ def facility_info(facilityId):
 
     # if False: good if we want to add, bad if we are trying to get
     facilityDbEntry, facilityDataDict = getFacilityData(facilityId)
+    if not facilityDataDict:
+        abort(400, 'Invalid Facility ID')
     facilityIdOccupied = bool(facilityDbEntry or facilityDataDict)
 
     if request.method == "GET":
@@ -102,6 +104,8 @@ def classroom_info(facilityId, classroomId):
     classroomId = int(classroomId)
 
     facilityDbEntry, facilityDataDict = getFacilityData(facilityId)
+    if not facilityDataDict:
+        abort(400, 'Invalid Facility ID')
 
     classroomDbEntry, classroomDataDict = getClassroomData(facilityId, classroomId)
     if not classroomDataDict:
@@ -209,7 +213,7 @@ def getFacilityData(facilityId):
     facilityDbEntry: FacilityInstanceDBEntry = _facilityDB.filter_by(
         id = facilityId,
     ).first()
-    facilityDataDict = Database.getTableContents(type(facilityDbEntry), [facilityDbEntry])
+    facilityDataDict = Database.getTableContents(FacilityInstanceDBEntry, [facilityDbEntry])
     return facilityDbEntry, facilityDataDict
 
 
@@ -271,11 +275,15 @@ def child_info(facilityId, classroomId, teacherId, childId):
     childId = int(childId)
 
     classroomDbEntry, classroomDataDict = getClassroomData(facilityId, classroomId)
-    teacherDbEntry, teacherDataDict = getTeacherData(classroomDbEntry)
+    if not classroomDataDict:
+        abort(400, 'Invalid classroom ID.')
+    teacherDbEntry, allTeacherDataDict = getTeacherData(classroomDbEntry)
     teacherDbEntry = teacherDbEntry.get(teacherId)
-    teacherDataDict = teacherDataDict.get(teacherId)
+    teacherDataDict = allTeacherDataDict.pop(teacherId)
 
     childDbEntry, childDataDict = getChildData(teacherDbEntry)
+    if not childDbEntry:
+        abort(400, 'Invalid Child ID')
     childDbEntry = childDbEntry.get(childId)
     childDataDict = childDataDict.get(childId)
 
