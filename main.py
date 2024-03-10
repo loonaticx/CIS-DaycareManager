@@ -48,7 +48,7 @@ def facility_info(facilityId):
     elif request.method == "POST":
         if facilityIdOccupied:
             # Return error, you cant create with the given ID
-            return
+            abort(400, 'ID Already occupied.')
         newFacilityEntry = FacilityInstanceDBEntry(FacilityInstance(**request.args))
         Database.generateEntry(newFacilityEntry)
         # Update the data dict with our new entry so that we can send a verified output
@@ -130,7 +130,7 @@ def classroom_info(facilityId, classroomId):
     elif request.method == "POST":
         if classroomIdOccupied:
             # Return error, you cant create with the given ID
-            return
+            abort(400, 'ID Already occupied.')
         newClassroomEntry = ClassroomInstanceDBEntry(ClassroomInstance(**request.args))
         Database.generateEntry(newClassroomEntry)
         newClassroomEntry.facility_id = facilityId
@@ -239,7 +239,7 @@ def teacher_info(facilityId, classroomId, teacherId):
     elif request.method == "POST":
         if teacherIdOccupied:
             # Return error, you cant create a teacher with the given ID
-            return
+            abort(400, 'ID already occupied.')
         newTeacherEntry = TeacherInstanceDBEntry(TeacherInstance(**request.args))
         Database.generateEntry(newTeacherEntry)
         newTeacherEntry.classroom_id = classroomId
@@ -299,7 +299,7 @@ def child_info(facilityId, classroomId, teacherId, childId):
     elif request.method == "POST":
         if childIdOccupied:
             # Return error, you cant create a child with the given ID
-            return
+            abort(400, 'ID Already occupied.')
         if currentSpots - currentOccupied <= 0:
             abort(400, 'Classroom is full.')
 
