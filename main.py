@@ -65,7 +65,7 @@ def facility_info(facilityId):
         # Information Remove
         Database.session.delete(facilityDbEntry)
         Database.session.commit()
-        returnInfo = "Item Deleted"
+        returnInfo = "Facility Deleted"
     return jsonify(returnInfo)
 
 
@@ -150,7 +150,7 @@ def classroom_info(facilityId, classroomId):
         # Information Remove
         Database.session.delete(classroomDbEntry)
         Database.session.commit()
-        returnInfo = "Item Deleted"
+        returnInfo = "Classroom Deleted"
 
     return jsonify(returnInfo)
 
@@ -259,9 +259,9 @@ def teacher_info(facilityId, classroomId, teacherId):
 
     elif request.method == 'DELETE':
         # Information Remove
-        Database.session.delete(classroomDbEntry)
+        Database.session.delete(teacherDbEntry)
         Database.session.commit()
-        returnInfo = "Item Deleted"
+        returnInfo = "Teacher Deleted"
 
     return jsonify(returnInfo)
 
