@@ -5,3 +5,4 @@ __pycache__
 
 # local database files, only used for testing
 *.db
+*.db-journal

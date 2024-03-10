@@ -2,3 +2,7 @@ mysql_connector_repackaged==0.3.1
 SQLAlchemy==2.0.25
 Flask
 mysqlclient
+uuid
+secrets
+base64
+datetime
