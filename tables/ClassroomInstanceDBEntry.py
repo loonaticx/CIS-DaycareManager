@@ -31,7 +31,7 @@ class ClassroomInstanceDBEntry(Base):
     _teacherids = Column(db.String, default='')
     @property
     def teacherids(self):
-        return [int(x) for x in self._teacherids.split(';')]
+        return [int(x) for x in self._teacherids.split(';') if x]
     @teacherids.setter
     def teacherids(self, value):
         self._teacherids += '%s;' % value

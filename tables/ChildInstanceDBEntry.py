@@ -39,5 +39,5 @@ class ChildInstanceDBEntry(Base):
 
     def __repr__(self):
         return "<ChildInstanceDBEntry(brand='%s')>" % (
-            self.name,
+            self.firstname,
         )

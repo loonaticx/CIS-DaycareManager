@@ -172,6 +172,7 @@ class DaycareGenerator:
                 classroom = self._generateClassroomEntry(facility)
                 self.database.generateEntry(classroom)
                 facility.classrooms.append(classroom)
+                facility.classroomid = classroom.id
                 childEntries = []
                 teacherEntries = []
 

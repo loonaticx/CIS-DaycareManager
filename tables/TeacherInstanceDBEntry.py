@@ -26,7 +26,7 @@ class TeacherInstanceDBEntry(Base):
     _childids = Column(db.String, default='')
     @property
     def childids(self):
-        return [int(x) for x in self._childids.split(';')]
+        return [int(x) for x in self._childids.split(';') if x]
     @childids.setter
     def childids(self, value):
         self._childids += '%s;' % value
@@ -39,5 +39,5 @@ class TeacherInstanceDBEntry(Base):
 
     def __repr__(self):
         return "<TeacherInstanceDBEntry(brand='%s')>" % (
-            self.name,
+            self.firstname,
         )

@@ -22,6 +22,15 @@ class FacilityInstanceDBEntry(Base):
     name = Column(String(64))
     # classrooms: Mapped[List["ClassroomInstanceDBEntry"]] = relationship(back_populates = "fac")
     classrooms = relationship("ClassroomInstanceDBEntry", back_populates = "facility")
+    _classroomids = Column(db.String, default = '')
+
+    @property
+    def classroomid(self):
+        return [int(x) for x in self._classroomids.split(';') if x]
+
+    @classroomid.setter
+    def classroomid(self, value):
+        self._classroomids += '%s;' % value
 
     def __init__(self, facilityInstance: FacilityInstance):
         self.name = facilityInstance.name
