@@ -60,14 +60,25 @@ class DatabaseManager:
         self.session.add(dbEntry)
         self.session.commit()
 
-    def getTableContents(self, dbEntry):
-        tableEntry = self.session.query(dbEntry).all()
+    def getTableContents(self, dbEntry, tableEntries:list=None):
+        if not dbEntry:
+            return None
+        if not tableEntries:
+            tableEntries = self.session.query(dbEntry).all()
+        elif not isinstance(tableEntries, list):
+            tableEntries = [tableEntries]
         attributes = [attr for attr in dbEntry.__table__.columns.keys()]
         itemDict = dict()
-        for item in tableEntry:
-            itemEntry = {attr: getattr(item, attr) for attr in attributes}
+        for item in tableEntries:
+            itemEntry = {attr: getattr(item, attr) for attr in attributes if hasattr(item, attr)}
+            # Hmm.. something is suspicious if our id key is missing.
+            # For now we'll just back out of here; the user will be thrown an error about it.
+            if not itemEntry.get('id'):
+                return None
             itemId = itemEntry.pop('id')
             itemDict[itemId] = itemEntry
+
+        print(f"id - {itemDict}")
         return itemDict
 
 
