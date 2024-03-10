@@ -177,8 +177,8 @@ def getTeacherData(classroomDbEntry):
         ).all()
         childDataDict = Database.getTableContents(ChildInstanceDBEntry, childDbEntry)
         for childId, childEntry in childDataDict.items():
-            # childEntry.pop("_childids")
-            teacherDataDict[teacherId]["Children"][childId] = dict(**childEntry)
+            if int(childId) in teacherEntry.childids:
+                teacherDataDict[teacherId]["Children"][childId] = dict(**childEntry)
         teacherDBEntryDict[teacherId] = teacherEntry
     return teacherDBEntryDict, teacherDataDict
 
@@ -193,10 +193,11 @@ def getChildData(teacherDbEntry):
         ).first()
         cData = Database.getTableContents(ChildInstanceDBEntry, [childDbEntry])
         # We have this weird nest to deal with
-        for cId, cContent in cData.items():
-            childDataDict[childId] = cContent
+        if cData:
+            for cId, cContent in cData.items():
+                childDataDict[childId] = cContent
 
-        childDBEntryDict[childId] = childDbEntry
+            childDBEntryDict[childId] = childDbEntry
     return childDBEntryDict, childDataDict
 
 
@@ -217,8 +218,8 @@ def getFacilityData(facilityId):
     return facilityDbEntry, facilityDataDict
 
 
-
-@app.route('/api/lookup/<facilityId>/<classroomId>/<teacherId>', methods = ['GET', 'POST', 'DELETE', 'PUT'], strict_slashes = False)
+@app.route('/api/lookup/<facilityId>/<classroomId>/<teacherId>', methods = ['GET', 'POST', 'DELETE', 'PUT'],
+           strict_slashes = False)
 def teacher_info(facilityId, classroomId, teacherId):
     if not tokenGenerator.isTokenValid(request.cookies.get('auth_token')):
         abort(400, 'Invalid token. (Generate one with /api/generate)')
@@ -271,6 +272,7 @@ def child_info(facilityId, classroomId, teacherId, childId):
     if not tokenGenerator.isTokenValid(request.cookies.get('auth_token')):
         abort(400, 'Invalid token. (Generate one with /api/generate)')
     returnInfo = {}
+    classroomId = int(classroomId)
     teacherId = int(teacherId)
     childId = int(childId)
 
@@ -280,6 +282,11 @@ def child_info(facilityId, classroomId, teacherId, childId):
     teacherDbEntry, allTeacherDataDict = getTeacherData(classroomDbEntry)
     teacherDbEntry = teacherDbEntry.get(teacherId)
     teacherDataDict = allTeacherDataDict.pop(teacherId)
+
+    currentSpots = classroomDataDict[classroomId]['capacity']
+    currentOccupied = len(teacherDataDict["Children"])
+    for _, otherTeachers in allTeacherDataDict.items():
+        currentOccupied += len(otherTeachers["Children"])
 
     childDbEntry, childDataDict = getChildData(teacherDbEntry)
     if not childDbEntry:
@@ -295,8 +302,13 @@ def child_info(facilityId, classroomId, teacherId, childId):
 
     elif request.method == "POST":
         if childIdOccupied:
-            # Return error, you cant create a teacher with the given ID
+            # Return error, you cant create a child with the given ID
             return
+        if currentSpots - currentOccupied <= 0:
+            abort(400, 'Classroom is full.')
+
+        if len(teacherDataDict["Children"]) >= 10:
+            abort(400, 'Too many children for this teacher!')
         newChildEntry = ChildInstanceDBEntry(ChildInstance(**request.args))
         Database.generateEntry(newChildEntry)
         newChildEntry.teacher_id = teacherId
@@ -314,6 +326,7 @@ def child_info(facilityId, classroomId, teacherId, childId):
         # Information Remove
         Database.session.delete(childDbEntry)
         Database.session.commit()
+        # Todo: Detach from teacher
         # KILL CHILD
         returnInfo = "Child Deleted"
 
