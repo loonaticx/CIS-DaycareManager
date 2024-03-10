@@ -29,6 +29,6 @@ class ChildInstanceDBEntry(Base):
         self.uuid = secrets.token_urlsafe(Config.UUID_TOKEN_LENGTH)
 
     def __repr__(self):
-        return "<ChildInstanceDBEntry(brand='%s')>" % (
+        return "<ChildInstanceDBEntry(firstname='%s')>" % (
             self.firstname,
         )

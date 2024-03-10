@@ -33,7 +33,7 @@ class FacilityInstanceDBEntry(Base):
         self.uuid = secrets.token_urlsafe(Config.UUID_TOKEN_LENGTH)
 
     def __repr__(self):
-        return "<FacilityInstanceDBEntry(brand='%s')>" % (
+        return "<FacilityInstanceDBEntry(name='%s')>" % (
             self.name,
         )
 

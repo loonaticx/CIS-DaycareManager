@@ -34,6 +34,6 @@ class TeacherInstanceDBEntry(Base):
         self.uuid = secrets.token_urlsafe(Config.UUID_TOKEN_LENGTH)
 
     def __repr__(self):
-        return "<TeacherInstanceDBEntry(brand='%s')>" % (
+        return "<TeacherInstanceDBEntry(firstname='%s')>" % (
             self.firstname,
         )

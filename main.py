@@ -15,13 +15,27 @@ _childDB = Database.session.query(ChildInstanceDBEntry)
 
 tokenGenerator = TokenGenerator()
 
+"""
+Auth Token Management
+"""
 
+
+# region
 @app.route('/api/generate', methods = ['GET'], strict_slashes = False)
 def generate_token():
     resp = make_response('Generated your token as a cookie.')
     resp.set_cookie('auth_token', tokenGenerator.generateToken(request.remote_addr).decode('utf-8'))
     return resp
 
+
+# endregion
+
+"""
+Facility Management
+"""
+
+
+# region
 
 @app.route('/api/lookup/facility', methods = ['GET'], strict_slashes = False)
 def all_facilities():
@@ -68,6 +82,24 @@ def facility_info(facilityId):
         returnInfo = "Facility Deleted"
     return jsonify(returnInfo)
 
+
+def getFacilityData(facilityId: int | str):
+    facilityDbEntry: FacilityInstanceDBEntry = _facilityDB.filter_by(
+        id = facilityId,
+    ).first()
+    facilityDataDict = Database.getTableContents(FacilityInstanceDBEntry, [facilityDbEntry])
+    return facilityDbEntry, facilityDataDict
+
+
+# endregion
+
+
+"""
+Classroom Management
+"""
+
+
+# region
 
 @app.route('/api/lookup/classrooms', methods = ['GET'], strict_slashes = False)
 def all_classrooms():
@@ -153,52 +185,7 @@ def classroom_info(facilityId, classroomId):
     return jsonify(returnInfo)
 
 
-def getTeacherData(classroomDbEntry):
-    teacherDataDict = dict()
-    teacherDBEntryDict = dict()
-    for teacherId in classroomDbEntry.teacherids:
-        teacherEntry: TeacherInstanceDBEntry = _teacherDB.filter_by(
-            classroom_id = classroomDbEntry.id,
-            id = teacherId
-        ).first()
-        tData = Database.getTableContents(TeacherInstanceDBEntry, [teacherEntry])
-        # We have this weird nest to deal with
-        for tId, tContent in tData.items():
-            teacherDataDict[teacherId] = tContent
-        teacherDataDict[teacherId]["Children"] = {}
-
-        # Multiple kids can be hereaaa
-        childDbEntry: ChildInstanceDBEntry = _childDB.filter_by(
-            classroom_id = classroomDbEntry.id,
-            teacher_id = teacherId
-        ).all()
-        childDataDict = Database.getTableContents(ChildInstanceDBEntry, childDbEntry)
-        for childId, childEntry in childDataDict.items():
-            if int(childId) in teacherEntry.childids:
-                teacherDataDict[teacherId]["Children"][childId] = dict(**childEntry)
-        teacherDBEntryDict[teacherId] = teacherEntry
-    return teacherDBEntryDict, teacherDataDict
-
-
-def getChildData(teacherDbEntry):
-    childDataDict = dict()
-    childDBEntryDict = dict()
-    for childId in teacherDbEntry.childids:
-        childDbEntry: ChildInstanceDBEntry = _childDB.filter_by(
-            teacher_id = teacherDbEntry.id,
-            id = childId
-        ).first()
-        cData = Database.getTableContents(ChildInstanceDBEntry, [childDbEntry])
-        # We have this weird nest to deal with
-        if cData:
-            for cId, cContent in cData.items():
-                childDataDict[childId] = cContent
-
-            childDBEntryDict[childId] = childDbEntry
-    return childDBEntryDict, childDataDict
-
-
-def getClassroomData(facilityId, classroomId):
+def getClassroomData(facilityId:int | str, classroomId:int|str):
     classroomDbEntry: ClassroomInstanceDBEntry = _classroomDB.filter_by(
         facility_id = facilityId,
         id = classroomId
@@ -207,13 +194,15 @@ def getClassroomData(facilityId, classroomId):
     return classroomDbEntry, classroomDataDict
 
 
-def getFacilityData(facilityId):
-    facilityDbEntry: FacilityInstanceDBEntry = _facilityDB.filter_by(
-        id = facilityId,
-    ).first()
-    facilityDataDict = Database.getTableContents(FacilityInstanceDBEntry, [facilityDbEntry])
-    return facilityDbEntry, facilityDataDict
+# endregion
 
+
+"""
+Teacher Management
+"""
+
+
+# region
 
 @app.route('/api/lookup/<facilityId>/<classroomId>/<teacherId>', methods = ['GET', 'POST', 'DELETE', 'PUT'],
            strict_slashes = False)
@@ -261,6 +250,42 @@ def teacher_info(facilityId, classroomId, teacherId):
 
     return jsonify(returnInfo)
 
+
+def getTeacherData(classroomDbEntry):
+    teacherDataDict = dict()
+    teacherDBEntryDict = dict()
+    for teacherId in classroomDbEntry.teacherids:
+        teacherEntry: TeacherInstanceDBEntry = _teacherDB.filter_by(
+            classroom_id = classroomDbEntry.id,
+            id = teacherId
+        ).first()
+        tData = Database.getTableContents(TeacherInstanceDBEntry, [teacherEntry])
+        # We have this weird nest to deal with
+        for tId, tContent in tData.items():
+            teacherDataDict[teacherId] = tContent
+        teacherDataDict[teacherId]["Children"] = {}
+
+        # Multiple kids can be hereaaa
+        childDbEntry: ChildInstanceDBEntry = _childDB.filter_by(
+            classroom_id = classroomDbEntry.id,
+            teacher_id = teacherId
+        ).all()
+        childDataDict = Database.getTableContents(ChildInstanceDBEntry, childDbEntry)
+        for childId, childEntry in childDataDict.items():
+            if int(childId) in teacherEntry.childids:
+                teacherDataDict[teacherId]["Children"][childId] = dict(**childEntry)
+        teacherDBEntryDict[teacherId] = teacherEntry
+    return teacherDBEntryDict, teacherDataDict
+
+
+# endregion
+
+"""
+Child Management
+"""
+
+
+# region
 
 @app.route('/api/lookup/<facilityId>/<classroomId>/<teacherId>/<childId>', methods = ['GET', 'POST', 'DELETE', 'PUT'],
            strict_slashes = False)
@@ -328,5 +353,25 @@ def child_info(facilityId, classroomId, teacherId, childId):
 
     return jsonify(returnInfo)
 
+
+def getChildData(teacherDbEntry):
+    childDataDict = dict()
+    childDBEntryDict = dict()
+    for childId in teacherDbEntry.childids:
+        childDbEntry: ChildInstanceDBEntry = _childDB.filter_by(
+            teacher_id = teacherDbEntry.id,
+            id = childId
+        ).first()
+        cData = Database.getTableContents(ChildInstanceDBEntry, [childDbEntry])
+        # We have this weird nest to deal with
+        if cData:
+            for cId, cContent in cData.items():
+                childDataDict[childId] = cContent
+
+            childDBEntryDict[childId] = childDbEntry
+    return childDBEntryDict, childDataDict
+
+
+# endregion
 
 app.run(Config.FLASK_HOST, debug = Config.FLASK_WANT_DEBUG)
