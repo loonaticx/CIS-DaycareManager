@@ -30,7 +30,7 @@ class TeacherInstanceDBEntry(Base):
     # classroom = relationship('ClassroomInstanceDBEntry',  backref = 'classroom', lazy = 'dynamic', foreign_keys =
     # "[ClassroomInstanceDBEntry.id, ClassroomInstanceDBEntry.uuid]")
     children = relationship("ChildInstanceDBEntry", back_populates = "teacher")
-    _childids = Column(db.String, default = '')
+    _childids = Column(db.String(512), default = '')
 
     @property
     def childids(self):

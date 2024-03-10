@@ -35,8 +35,8 @@ class ClassroomInstanceDBEntry(Base):
     #     ondelete="SET NULL",
     # ),
 
+    _teacherids = Column(db.String(512), default = '')
 
-    _teacherids = Column(db.String, default='')
     @property
     def teacherids(self):
         return [int(x) for x in self._teacherids.split(';') if x]

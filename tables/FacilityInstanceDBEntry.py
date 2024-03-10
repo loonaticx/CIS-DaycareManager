@@ -25,7 +25,7 @@ class FacilityInstanceDBEntry(Base):
     name = Column(String(64))
     # classrooms: Mapped[List["ClassroomInstanceDBEntry"]] = relationship(back_populates = "fac")
     classrooms = relationship("ClassroomInstanceDBEntry", back_populates = "facility")
-    _classroomids = Column(db.String, default = '')
+    _classroomids = Column(db.String(512), default = '')
 
     @property
     def classroomid(self):
