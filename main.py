@@ -1,8 +1,9 @@
+from auth.TokenGenerator import TokenGenerator
 from base.RequestHelper import RequestHelper
 from tables import *
 from base.DatabaseDriver import *
 
-from flask import Flask, jsonify, request, abort
+from flask import Flask, jsonify, request, abort, make_response
 
 app = Flask(__name__)
 
@@ -11,6 +12,15 @@ _facilityDB = Database.session.query(FacilityInstanceDBEntry)
 _classroomDB = Database.session.query(ClassroomInstanceDBEntry)
 _teacherDB = Database.session.query(TeacherInstanceDBEntry)
 _childDB = Database.session.query(ChildInstanceDBEntry)
+
+tokenGenerator = TokenGenerator()
+
+
+@app.route('/api/generate', methods = ['GET'], strict_slashes = False)
+def generate_token():
+    resp = make_response('Generated your token as a cookie.')
+    resp.set_cookie('auth_token', tokenGenerator.generateToken(request.remote_addr).decode('utf-8'))
+    return resp
 
 
 @app.route('/api/lookup/facility', methods = ['GET'], strict_slashes = False)
@@ -22,8 +32,8 @@ def all_facilities():
 
 @app.route('/api/lookup/<facilityId>', methods = ['GET', 'POST', 'PUT', 'DELETE'], strict_slashes = False)
 def facility_info(facilityId):
-    # Fetch all entries
-    # classroomDict = Database.getTableContents(ClassroomInstanceDBEntry)
+    if not tokenGenerator.isTokenValid(request.cookies.get('auth_token')):
+        abort(400, 'Invalid token. (Generate one with /api/generate)')
     returnInfo = {}
 
     # if False: good if we want to add, bad if we are trying to get
@@ -59,12 +69,16 @@ def facility_info(facilityId):
 
 @app.route('/api/lookup/classrooms', methods = ['GET'], strict_slashes = False)
 def all_classrooms():
+    if not tokenGenerator.isTokenValid(request.cookies.get('auth_token')):
+        abort(400, 'Invalid token. (Generate one with /api/generate)')
     # Fetch all entries
     classroomDict = Database.getTableContents(ClassroomInstanceDBEntry)
     return jsonify(classroomDict)
 
 @app.route('/api/lookup/<facilityId>/', methods = ['GET'], strict_slashes = True)
 def all_classrooms_in_facility(facilityId):
+    if not tokenGenerator.isTokenValid(request.cookies.get('auth_token')):
+        abort(400, 'Invalid token. (Generate one with /api/generate)')
     prettyDict = {}
     # Fetch all entries
     classroomDbEntry: ClassroomInstanceDBEntry = _classroomDB.filter_by(
@@ -81,6 +95,8 @@ def all_classrooms_in_facility(facilityId):
 
 @app.route('/api/lookup/<facilityId>/<classroomId>', methods = ['GET', 'POST', 'PUT', 'DELETE'], strict_slashes = False)
 def classroom_info(facilityId, classroomId):
+    if not tokenGenerator.isTokenValid(request.cookies.get('auth_token')):
+        abort(400, 'Invalid token. (Generate one with /api/generate)')
     returnInfo = {}
     facilityId = int(facilityId)
     classroomId = int(classroomId)
@@ -200,6 +216,8 @@ def getFacilityData(facilityId):
 
 @app.route('/api/lookup/<facilityId>/<classroomId>/<teacherId>', methods = ['GET', 'POST', 'DELETE', 'PUT'], strict_slashes = False)
 def teacher_info(facilityId, classroomId, teacherId):
+    if not tokenGenerator.isTokenValid(request.cookies.get('auth_token')):
+        abort(400, 'Invalid token. (Generate one with /api/generate)')
     returnInfo = {}
     # classroomDict = Database.getTableContents(ClassroomInstanceDBEntry)
     classroomDbEntry, classroomDataDict = getClassroomData(facilityId, classroomId)
@@ -246,6 +264,8 @@ def teacher_info(facilityId, classroomId, teacherId):
 @app.route('/api/lookup/<facilityId>/<classroomId>/<teacherId>/<childId>', methods = ['GET', 'POST', 'DELETE', 'PUT'],
            strict_slashes = False)
 def child_info(facilityId, classroomId, teacherId, childId):
+    if not tokenGenerator.isTokenValid(request.cookies.get('auth_token')):
+        abort(400, 'Invalid token. (Generate one with /api/generate)')
     returnInfo = {}
     teacherId = int(teacherId)
     childId = int(childId)
