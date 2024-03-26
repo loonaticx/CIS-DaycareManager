@@ -26,6 +26,8 @@ class TeacherInstanceDBEntry(Base):
 
     @childids.setter
     def childids(self, value):
+        if not value:
+            self._childids = ''
         self._childids += '%s;' % value
 
     def __init__(self, teacherInstance: TeacherInstance):
