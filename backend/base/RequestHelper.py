@@ -18,6 +18,6 @@ class RequestHelper:
             if hasattr(dbEntry, requested_arg):
                 val = correctValType(getattr(dbEntry, requested_arg), _val)
                 dataDict[requested_arg] = val
-                dbEntry.requested_arg = val
+                setattr(dbEntry, requested_arg, val)
 
         return dbEntry, dataDict

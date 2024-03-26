@@ -24,6 +24,7 @@ class ClassroomInstanceDBEntry(Base):
     children = relationship("ChildInstanceDBEntry", back_populates = "classroom")
 
     _teacherids = Column(db.String(512), default = '')
+    _badids = Column(db.String(512), default = '')
 
     @property
     def teacherids(self):
@@ -31,7 +32,21 @@ class ClassroomInstanceDBEntry(Base):
 
     @teacherids.setter
     def teacherids(self, value):
+        if str(value) in self._badids:
+            self._teacherids.replace(f"{value};", '')
+            self._badids.replace(f"{value};", '')
+            return
+        if value in self.teacherids:
+            return
         self._teacherids += '%s;' % value
+
+    @property
+    def badids(self):
+        return [int(x) for x in self._badids.split(';') if x]
+
+    @teacherids.setter
+    def badids(self, value):
+        self._badids += '%s;' % value
 
     def __init__(self, classroomInstance: ClassroomInstance):
         self.name = classroomInstance.name
