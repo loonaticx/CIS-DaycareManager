@@ -2,6 +2,8 @@ import base64
 import datetime
 import time
 
+from config.Config import Config
+
 
 # Very basic auth token
 
@@ -18,6 +20,8 @@ class TokenGenerator:
         return self._encrypt(ipaddr)
 
     def isTokenValid(self, token):
+        if Config.FLASK_OVERRIDE_AUTH:
+            return True
         if not token:
             return False
         dToken = self.decrypt(token)

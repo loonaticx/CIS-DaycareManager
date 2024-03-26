@@ -22,3 +22,4 @@ class Config:
 
     FLASK_HOST = "localhost"
     FLASK_WANT_DEBUG = False
+    FLASK_OVERRIDE_AUTH = True
