@@ -1,9 +1,13 @@
+import copy
+
+import flask
+
 from auth.TokenGenerator import TokenGenerator
 from base.RequestHelper import RequestHelper
 from tables import *
 from base.DatabaseDriver import *
 
-from flask import Flask, jsonify, request, abort, make_response
+from flask import Flask, request, abort, make_response
 
 app = Flask(__name__)
 
@@ -14,6 +18,30 @@ _teacherDB = Database.session.query(TeacherInstanceDBEntry)
 _childDB = Database.session.query(ChildInstanceDBEntry)
 
 tokenGenerator = TokenGenerator()
+
+
+def jsonify(returnInfo):
+    """
+    Wrapper to remove specific entries from being
+    put out in the API
+    """
+    def recursive(data):
+        newData = {}
+        if data:
+            for k, v in data.items():
+                try:
+                    if "_badids" in k:
+                        continue
+                except:
+                    pass
+                if isinstance(v, dict):
+                    v = recursive(v)
+                newData[k] = v
+        return newData
+
+    newInfo = recursive(returnInfo)
+    return flask.jsonify(newInfo)
+
 
 """
 Auth Token Management
@@ -51,8 +79,8 @@ def facility_info(facilityId):
     returnInfo = {}
 
     # if False: good if we want to add, bad if we are trying to get
-    facilityDbEntry, facilityDataDict = getFacilityData(facilityId)
-    if not facilityDataDict:
+    facilityDbEntry, facilityDataDict = getFacilityData(int(facilityId))
+    if not facilityDataDict and request.method != "POST":
         abort(400, 'Invalid Facility ID')
     facilityIdOccupied = bool(facilityDbEntry or facilityDataDict)
 
@@ -70,6 +98,7 @@ def facility_info(facilityId):
         returnInfo = facilityDataDict.get(int(newFacilityEntry.id))
 
     elif request.method == "PUT":
+        facilityDataDict = facilityDataDict.get(int(facilityId))
         facilityDbEntry, facilityDataDict = RequestHelper.doPut(request, facilityDbEntry, facilityDataDict)
         # Commit
         Database.session.commit()
@@ -115,11 +144,13 @@ def all_classrooms_in_facility(facilityId):
     if not tokenGenerator.isTokenValid(request.cookies.get('auth_token')):
         abort(400, 'Invalid token. (Generate one with /api/generate)')
     prettyDict = {}
+    classroomDataDict = {}
     # Fetch all entries
     classroomDbEntry: ClassroomInstanceDBEntry = _classroomDB.filter_by(
         facility_id = facilityId,
     ).all()
-    classroomDataDict = Database.getTableContents(ClassroomInstanceDBEntry, classroomDbEntry)
+    if classroomDbEntry:
+        classroomDataDict = Database.getTableContents(ClassroomInstanceDBEntry, classroomDbEntry)
 
     for classId, classData in classroomDataDict.items():
         className = classData.pop("name")
@@ -142,30 +173,34 @@ def classroom_info(facilityId, classroomId):
         abort(400, 'Invalid Facility ID')
 
     classroomDbEntry, classroomDataDict = getClassroomData(facilityId, classroomId)
-    if not classroomDataDict:
-        abort(400, 'Invalid Classroom ID')
-    classroomDataDict = classroomDataDict.get(classroomId)
+    if request.method != "POST":
+        if not classroomDataDict:
+            abort(400, 'Invalid Classroom ID')
+        else:
+            classroomDataDict = classroomDataDict.get(int(classroomId))
+            classroomDataDict["Teachers"] = {}
 
     # if False: good if we want to add, bad if we are trying to get
     classroomIdOccupied = classroomId in facilityDbEntry.classrooms
 
     classroomOutDict = {}
-    classroomDataDict["Teachers"] = {}
     if request.method == "GET":
         # So we only have one entry in the inbound dict
         teacherDBEntryDict, teacherDataDict = getTeacherData(classroomDbEntry)
         for teacherId, teacherEntry in teacherDataDict.items():
+            # if teacherEntry.classroom_id == classroomId:
             classroomDataDict["Teachers"][teacherId] = dict(**teacherEntry)
 
         returnInfo = classroomDataDict
 
     elif request.method == "POST":
+        # TODO: reject if input name already exists in db
         if classroomIdOccupied:
             # Return error, you cant create with the given ID
             abort(400, 'ID Already occupied.')
         newClassroomEntry = ClassroomInstanceDBEntry(ClassroomInstance(**request.args))
-        Database.generateEntry(newClassroomEntry)
         newClassroomEntry.facility_id = facilityId
+        Database.generateEntry(newClassroomEntry)
         # Update the data dict with our new entry so that we can send a verified output
         classroomDataDict = Database.getTableContents(ClassroomInstanceDBEntry)
         returnInfo = classroomDataDict.get(int(newClassroomEntry.id))
@@ -174,6 +209,7 @@ def classroom_info(facilityId, classroomId):
         classroomDbEntry, classroomDataDict = RequestHelper.doPut(request, classroomDbEntry, classroomDataDict)
         # Commit
         Database.session.commit()
+
         returnInfo = classroomDataDict
 
     elif request.method == 'DELETE':
@@ -230,13 +266,19 @@ def teacher_info(facilityId, classroomId, teacherId):
             # Return error, you cant create a teacher with the given ID
             abort(400, 'ID already occupied.')
         newTeacherEntry = TeacherInstanceDBEntry(TeacherInstance(**request.args))
-        Database.generateEntry(newTeacherEntry)
         newTeacherEntry.classroom_id = classroomId
+        Database.generateEntry(newTeacherEntry)
+        # CAREFUL!
+
+        classroomDbEntry.teacherids = newTeacherEntry.id
+        Database.session.commit()
+
         # Update the data dict with our new entry so that we can send a verified output
         teacherDataDict = Database.getTableContents(TeacherInstanceDBEntry)
         returnInfo = teacherDataDict.get(int(newTeacherEntry.id))
 
     elif request.method == "PUT":
+        # teacherDataDict = teacherDataDict.get(int(teacherId))
         teacherDbEntry, teacherDataDict = RequestHelper.doPut(request, teacherDbEntry, teacherDataDict)
         # Commit
         Database.session.commit()
@@ -259,6 +301,9 @@ def getTeacherData(classroomDbEntry):
             classroom_id = classroomDbEntry.id,
             id = teacherId
         ).first()
+        if not teacherEntry:
+            classroomDbEntry.badids = teacherId
+            continue
         tData = Database.getTableContents(TeacherInstanceDBEntry, [teacherEntry])
         # We have this weird nest to deal with
         for tId, tContent in tData.items():
@@ -275,6 +320,11 @@ def getTeacherData(classroomDbEntry):
             if int(childId) in teacherEntry.childids:
                 teacherDataDict[teacherId]["Children"][childId] = dict(**childEntry)
         teacherDBEntryDict[teacherId] = teacherEntry
+
+    # Cleanup bad ids
+    for badid in classroomDbEntry.badids:
+        classroomDbEntry.teacherids = badid
+
     return teacherDBEntryDict, teacherDataDict
 
 
@@ -310,7 +360,7 @@ def child_info(facilityId, classroomId, teacherId, childId):
         currentOccupied += len(otherTeachers["Children"])
 
     childDbEntry, childDataDict = getChildData(teacherDbEntry)
-    if not childDbEntry:
+    if not childDbEntry and request.method != "POST":
         abort(400, 'Invalid Child ID')
     childDbEntry = childDbEntry.get(childId)
     childDataDict = childDataDict.get(childId)
@@ -331,13 +381,17 @@ def child_info(facilityId, classroomId, teacherId, childId):
         if len(teacherDataDict["Children"]) >= 10:
             abort(400, 'Too many children for this teacher!')
         newChildEntry = ChildInstanceDBEntry(ChildInstance(**request.args))
-        Database.generateEntry(newChildEntry)
         newChildEntry.teacher_id = teacherId
+        newChildEntry.classroom_id = classroomId
+        Database.generateEntry(newChildEntry)
+
+        teacherDbEntry.childids = newChildEntry.id
         # Update the data dict with our new entry so that we can send a verified output
         childDataDict = Database.getTableContents(ChildInstanceDBEntry)
         returnInfo = childDataDict.get(int(newChildEntry.id))
 
     elif request.method == "PUT":
+        childDataDict = childDataDict.get(int(childId))
         childDbEntry, childDataDict = RequestHelper.doPut(request, childDbEntry, childDataDict)
         # Commit
         Database.session.commit()
