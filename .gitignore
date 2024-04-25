@@ -6,3 +6,8 @@ __pycache__
 # local database files, only used for testing
 *.db
 *.db-journal
+/.vs
+/.vscode
+/frontend/node_modules
+/frontend/.iis
+/frontend/.vscode
