@@ -6,3 +6,4 @@ uuid
 secrets
 base64
 datetime
+flask-cors

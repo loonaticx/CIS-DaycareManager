@@ -8,8 +8,12 @@ from tables import *
 from base.DatabaseDriver import *
 
 from flask import Flask, request, abort, make_response
+from flask_cors import CORS
 
 app = Flask(__name__)
+# https://stackoverflow.com/questions/20035101/why-does-my-javascript-code-receive-a-no-access-control-allow-origin
+# -header-i
+CORS(app)
 
 # Grab our tables
 _facilityDB = Database.session.query(FacilityInstanceDBEntry)
