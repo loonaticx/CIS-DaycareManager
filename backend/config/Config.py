@@ -16,7 +16,7 @@ class Config:
     UUID_TOKEN_LENGTH: int = 32
 
     # LOCAL_FILE, LOCAL_MEMORY, REMOTE_SERVER
-    CONNECTION_MODE: ConnectionType = ConnectionType.LOCAL_FILE
+    CONNECTION_MODE: ConnectionType = ConnectionType.REMOTE_SERVER
 
     LOCAL_FILENAME: str = "data.db"
 
