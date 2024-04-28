@@ -78,9 +78,19 @@ def all_facilities():
 
 @app.route('/api/lookup/<facilityId>', methods = ['GET', 'POST', 'PUT', 'DELETE'], strict_slashes = False)
 def facility_info(facilityId):
+    """
+    :param facilityId: The UUID of the facility
+    """
     if not tokenGenerator.isTokenValid(request.cookies.get('auth_token')):
         abort(400, 'Invalid token. (Generate one with /api/generate)')
     returnInfo = {}
+
+    # Database ID or UUID?
+    passedIdType = request.args.get('idType', "uuid")
+    if passedIdType == "dbid":
+        facilityId = int(facilityId)
+    else:
+        facilityId = int(getIDfromUUID(facilityId, FacilityInstanceDBEntry, _facilityDB))
 
     # if False: good if we want to add, bad if we are trying to get
     facilityDbEntry, facilityDataDict = getFacilityData(int(facilityId))
@@ -99,7 +109,7 @@ def facility_info(facilityId):
         Database.generateEntry(newFacilityEntry)
         # Update the data dict with our new entry so that we can send a verified output
         facilityDataDict = Database.getTableContents(FacilityInstanceDBEntry)
-        returnInfo = facilityDataDict.get(int(newFacilityEntry.id))
+        returnInfo = facilityDataDict.get(str(newFacilityEntry.uuid))
 
     elif request.method == "PUT":
         facilityDataDict = facilityDataDict.get(int(facilityId))
@@ -124,6 +134,24 @@ def getFacilityData(facilityId: int | str):
     return facilityDbEntry, facilityDataDict
 
 
+def getIDfromUUID(uuid, dbEntry, database):
+    dbEntry: dbEntry = database.filter_by(
+        uuid = uuid,
+    ).first()
+    if not dbEntry:
+        return -1
+    return dbEntry.id
+
+
+def getUUIDfromID(id, dbEntry, database):
+    dbEntry: dbEntry = database.filter_by(
+        id = id,
+    ).first()
+    if not dbEntry:
+        return -1
+    return dbEntry.uuid
+
+
 # endregion
 
 
@@ -146,7 +174,19 @@ def all_classrooms():
 @app.route('/api/lookup/<facilityId>/', methods = ['GET'], strict_slashes = True)
 def all_classrooms_in_facility(facilityId):
     if not tokenGenerator.isTokenValid(request.cookies.get('auth_token')):
-        abort(400, 'Invalid token. (Generate one with /api/generate)')
+
+    # Database ID or UUID?
+    passedIdType = request.args.get('idType', "uuid")
+    if passedIdType == "dbid":
+        facilityId = int(facilityId)
+        facilityUUID = getUUIDfromID(facilityId, FacilityInstanceDBEntry, _facilityDB)
+    else:
+        facilityUUID = facilityId
+        facilityId = int(getIDfromUUID(facilityId, FacilityInstanceDBEntry, _facilityDB))
+
+    if facilityId == -1:
+        abort(400, 'Improper Facility ID given')
+
     prettyDict = {}
     classroomDataDict = {}
     # Fetch all entries
@@ -169,8 +209,15 @@ def classroom_info(facilityId, classroomId):
     if not tokenGenerator.isTokenValid(request.cookies.get('auth_token')):
         abort(400, 'Invalid token. (Generate one with /api/generate)')
     returnInfo = {}
-    facilityId = int(facilityId)
-    classroomId = int(classroomId)
+
+    # Database ID or UUID?
+    passedIdType = request.args.get('idType', "uuid")
+    if passedIdType == "dbid":
+        facilityId = int(facilityId)
+        classroomId = int(classroomId)
+    else:
+        facilityId = int(getIDfromUUID(facilityId, FacilityInstanceDBEntry, _facilityDB))
+        classroomId = int(getIDfromUUID(classroomId, ClassroomInstanceDBEntry, _classroomDB))
 
     facilityDbEntry, facilityDataDict = getFacilityData(facilityId)
     if not facilityDataDict:
@@ -250,10 +297,26 @@ def teacher_info(facilityId, classroomId, teacherId):
     if not tokenGenerator.isTokenValid(request.cookies.get('auth_token')):
         abort(400, 'Invalid token. (Generate one with /api/generate)')
     returnInfo = {}
+
+    # Database ID or UUID?
+    passedIdType = request.args.get('idType', "uuid")
+    if passedIdType == "dbid":
+        facilityId = int(facilityId)
+        classroomId = int(classroomId)
+        teacherId = int(teacherId)
+    else:
+        facilityId = int(getIDfromUUID(facilityId, FacilityInstanceDBEntry, _facilityDB))
+        classroomId = int(getIDfromUUID(classroomId, ClassroomInstanceDBEntry, _classroomDB))
+        teacherId = int(getIDfromUUID(teacherId, TeacherInstanceDBEntry, _teacherDB))
+
+    facilityDbEntry, facilityDataDict = getFacilityData(facilityId)
+    if not facilityDataDict:
+        abort(400, 'Invalid Facility ID')
+
     classroomDbEntry, classroomDataDict = getClassroomData(facilityId, classroomId)
     if not classroomDataDict:
         abort(400, 'Invalid Classroom ID')
-    teacherId = int(teacherId)
+
     # if False: good if we want to add, bad if we are trying to get
     teacherIdOccupied = teacherId in classroomDbEntry.teacherids
 
@@ -347,9 +410,23 @@ def child_info(facilityId, classroomId, teacherId, childId):
     if not tokenGenerator.isTokenValid(request.cookies.get('auth_token')):
         abort(400, 'Invalid token. (Generate one with /api/generate)')
     returnInfo = {}
-    classroomId = int(classroomId)
-    teacherId = int(teacherId)
-    childId = int(childId)
+
+    # Database ID or UUID?
+    passedIdType = request.args.get('idType', "uuid")
+    if passedIdType == "dbid":
+        facilityId = int(facilityId)
+        classroomId = int(classroomId)
+        teacherId = int(teacherId)
+        childId = int(childId)
+    else:
+        facilityId = int(getIDfromUUID(facilityId, FacilityInstanceDBEntry, _facilityDB))
+        classroomId = int(getIDfromUUID(classroomId, ClassroomInstanceDBEntry, _classroomDB))
+        teacherId = int(getIDfromUUID(teacherId, TeacherInstanceDBEntry, _teacherDB))
+        childId = int(getIDfromUUID(childId, ChildInstanceDBEntry, _childDB))
+
+    facilityDbEntry, facilityDataDict = getFacilityData(facilityId)
+    if not facilityDataDict:
+        abort(400, 'Invalid facility ID.')
 
     classroomDbEntry, classroomDataDict = getClassroomData(facilityId, classroomId)
     if not classroomDataDict:
