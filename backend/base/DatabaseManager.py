@@ -59,7 +59,16 @@ class DatabaseManager:
         self.session.add(dbEntry)
         self.session.commit()
 
-    def getTableContents(self, dbEntry, tableEntries: list = None):
+    def getTableContents(self, dbEntry, tableEntries: list = None, wantIdAsKey=True):
+        """
+        :param wantIdAsKey: If true, will return a nested dict with the entry's id attribute being the key
+        Note: Variable is currently just a safety mechanism while I refactor the base logic
+        {
+            "1": {
+                "foo": "bar",
+            }
+        }
+        """
         if not dbEntry:
             return None
         if not tableEntries:
@@ -68,14 +77,25 @@ class DatabaseManager:
             tableEntries = [tableEntries]
         attributes = [attr for attr in dbEntry.__table__.columns.keys()]
         itemDict = dict()
+        itemList = list()
         for item in tableEntries:
             itemEntry = {attr: getattr(item, attr) for attr in attributes if hasattr(item, attr)}
             # Hmm.. something is suspicious if our id key is missing.
             # For now we'll just back out of here; the user will be thrown an error about it.
             if not itemEntry.get('id'):
+                print("Item entry was none for id!")
                 return None
-            itemId = itemEntry.pop('id')
-            itemDict[itemId] = itemEntry
+
+            if len(tableEntries) == 1 and not wantIdAsKey:
+                # We aren't going to iterate through this loop again anywya.
+                itemDict = itemEntry
+            elif not wantIdAsKey:
+                itemList.append(itemEntry)
+            else:
+                itemId = itemEntry.pop('id')
+                itemDict[itemId] = itemEntry
+        if itemList:
+            return itemList
         return itemDict
 
 
