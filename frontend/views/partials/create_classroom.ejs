@@ -1,0 +1,55 @@
+<body class="container">
+    <style>
+        div.classtab {
+            border: 2px solid red;
+            border-radius: 12px;
+            padding: 5px;
+            background: red;
+            float: right;
+        }
+    </style>
+    <div class="classtab">
+        <div class="jumbotron">
+            <form>
+                <h1><data id="info" value="<%= apiPath %>">Add Classroom</data></h1>
+                <label for="name_classroom">Classroom Name:</label>
+                <input type="text" placeholder="My Classroom" id="name_classroom" name="name_classroom"
+                    required><br><br>
+                <label for="capacity_classroom">Classroom Capacity:</label>
+                <input type="text" placeholder="10" id="capacity_classroom" name="capacity_classroom" required><br><br>
+                <button type="button" onclick="addNewClassroom()">Create</button>
+            </form>
+
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.min.js"></script>
+            <script>
+                function addNewClassroom() {
+                    let apiPath = document.getElementById('info').value;
+
+                    let classroom_name = document.getElementById('name_classroom').value;
+                    let classroom_capacity = document.getElementById('capacity_classroom').value;
+
+                    const dataDict = {
+                        classroomname: classroom_name,
+                        classroomcapacity: classroom_capacity,
+                    };
+                    if (classroom_name.length === 0 || classroom_capacity.length === 0) {
+                        alert("Values cannot be empty!")
+                        return;
+                    }
+                    const jesus = `?name=${classroom_name}&capacity=${classroom_capacity}`
+                    axios.post(`http://127.0.0.1:5000/api/lookup/${apiPath}/0${jesus}`, dataDict)
+                        .then(response => {
+                            document.getElementById("outputText").innerHTML = "Changes saved!";
+                        })
+                        .catch(error => {
+                            alert("Couldn't add new classroom.")
+                            console.log(error);
+                            // Handle errors
+                        });
+                };
+            </script>
+            <ul id="outputText" display="none" style="list-style-type: none; padding: 0; margin: 0;"></ul>
+        </div>
+    </div>
+
+</body>

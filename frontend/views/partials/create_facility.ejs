@@ -1,0 +1,48 @@
+<body class="container">
+    <style>
+        div.factab {
+            border: 2px solid red;
+            border-radius: 12px;
+            padding: 5px;
+            background: red;
+            float: right;
+        }
+    </style>
+    <div class="factab">
+        <div class="jumbotron">
+            <form>
+                <h1>Add Day Care</h1>
+                <label for="name_facility">Day Care Name:</label>
+                <input type="text" placeholder="My Facility" id="name_facility" name="name_facility" required><br><br>
+                <button type="button" onclick="addNewFacility()">Create</button>
+            </form>
+
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.min.js"></script>
+            <script>
+                function addNewFacility() {
+                    let facility_name = document.getElementById('name_facility').value;
+
+                    const dataDict = {
+                        facilityname: facility_name,
+                    };
+                    if (facility_name.length === 0) {
+                        alert("Name cannot be blank!")
+                        return;
+                    }
+                    const jesus = `?name=${facility_name}`
+                    axios.post(`http://127.0.0.1:5000/api/lookup/0${jesus}`, dataDict)
+                        .then(response => {
+                            document.getElementById("outputText").innerHTML = "Changes saved!";
+                        })
+                        .catch(error => {
+                            alert("Couldn't add new facility.")
+                            console.log(error);
+                            // Handle errors
+                        });
+                };
+            </script>
+            <ul id="outputText" display="none" style="list-style-type: none; padding: 0; margin: 0;"></ul>
+        </div>
+    </div>
+
+</body>

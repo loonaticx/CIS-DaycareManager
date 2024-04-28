@@ -1,0 +1,14 @@
+<div class="col-sm-8">
+    <div class="jumbotron">
+            <% if (pageChildren) { %>
+                <% Object.keys(pageChildren).forEach(function(subpage) { %>
+                    <li>
+                        <strong><%= subpage.name %></strong>
+                    </li>
+                <% }); %>
+               
+            <% } %>
+            
+        </ul>
+    </div>
+</div>

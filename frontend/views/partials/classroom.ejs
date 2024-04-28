@@ -1,0 +1,17 @@
+<div class="col-sm-8">
+    <div class="jumbotron">
+        <p><%= tagline %></p>
+        <ul>
+            <% if (teachers) { %>
+
+                <% Object.keys(teachers).forEach(function(teacher) { %>
+                    <li>
+                        <strong><a href="../facility/<%= teachers[teacher].uuid %>" target="_parent"><%= teachers[teacher].name</a></strong>
+                    </li>
+                <% }); %>
+               
+            <% } %>
+            
+        </ul>
+    </div>
+</div>

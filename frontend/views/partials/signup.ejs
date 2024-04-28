@@ -1,0 +1,35 @@
+<div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.min.js"></script>
+    <script>
+        function generateNewToken() {
+            axios.get(`http://127.0.0.1:5000/api/generate`)
+            .then(response => {
+                alert("Auth token set as cookie.")
+                console.log(response)
+                window.location.href =  "../../../../../facilities"; 
+            })
+              .catch(error => {
+                alert("Couldn't set auth token.")
+                console.log(error);
+                // Handle errors
+              });
+          };
+    </script>
+
+    <form>
+        <h2>just type whatever</h2>
+        <div class="form-group">
+            <label for="exampleInputEmail1" class="form-label">Email address</label>
+            <input type="text" id="username" name="username" class="form-control" placeholder="Username" required
+            autofocus>
+            <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
+        </div>
+        <div class="form-group">
+            <label for="exampleInputPassword1" class="form-label">Password</label>
+            <input type="password" name="password" id="inputPassword" class="form-control" placeholder="Password"
+            required>
+         </div>
+    
+        <input class="btn btn-lg btn-primary btn-block" onclick="generateNewToken()" type="submit">
+    </form>
+</div>

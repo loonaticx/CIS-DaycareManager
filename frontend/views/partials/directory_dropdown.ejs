@@ -1,0 +1,102 @@
+<style>
+    .dropdown-submenu {
+        position: relative;
+    }
+
+    .dropdown-submenu .dropdown-menu {
+        top: 0;
+        left: 100%;
+        margin-top: -1px;
+    }
+</style>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+<body>
+    <h1><data  id="apipath" value="<%= apiPath %>"></data></h1>
+
+    
+
+    <ul id="treedata" value="" display="none"></ul>
+
+    <script>
+        function fetchTree() {
+            let apiPath = document.getElementById('apipath').value;
+            axios.get(`http://127.0.0.1:5000/api/tree?level=${apiPath.split("/").length}`).then(response => {
+                let treedata = response.data;
+                document.getElementById('treedata').value = treedata;
+                
+                let tree_facility = document.getElementById('dropdown-facility')
+                Object.keys(treedata).forEach(function(facilityObj) {
+                    let li = document.createElement('li');
+                    li.innerHTML = facilityObj;
+                    tree_facility.appendChild(li);
+
+                    let a = document.createElement('a');
+                    a.setAttribute('href',"#");
+                    a.setAttribute("tabindex", -1)
+                    tree_facility.appendChild(a);
+
+                    let dateSpan = document.createElement('span')
+                    dateSpan.setAttribute('class',"caret");
+                    tree_facility.appendChild(dateSpan);
+
+                    // <li><a tabindex="-1" href="#">HTML</a></li>
+
+
+
+                    let classrooms = treedata.facilityObj;
+
+                    let tree_classroom = document.getElementById('dropdown-classroom')
+                    Object.keys(classrooms).forEach(function(classroomObj) { 
+                        let li = document.createElement('li');
+                        li.innerText = classroomObj;
+                        tree_classroom.appendChild(li);
+                    });
+                });
+            });
+
+        };
+    </script>
+
+    <div class="container">
+        <div class="dropdown">
+          <button class="btn btn-default dropdown-toggle" id="abutton" type="button" data-toggle="dropdown">Tutorials
+          <span class="caret"></span></button>
+          <ul class="dropdown-menu" id="dropdown-facility">
+            <li><a tabindex="-1" href="#">HTML</a></li>
+            <li><a tabindex="-1" href="#">CSS</a></li>
+            <li class="dropdown-classroom">
+              <a class="test" tabindex="-1" href="#">New dropdown </a>
+              <ul class="dropdown-menu">
+                <li><a tabindex="-1" href="#">2nd level dropdown</a></li>
+                <li><a tabindex="-1" href="#">2nd level dropdown</a></li>
+                <li class="dropdown-submenu">
+                  <a class="test" href="#">Another dropdown <span class="caret"></span></a>
+                  <ul class="dropdown-menu">
+                    <li><a href="#">3rd level dropdown</a></li>
+                    <li><a href="#">3rd level dropdown</a></li>
+                  </ul>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+    <script>
+        $(document).ready(function () {
+            fetchTree()
+            document.getElementById("abutton").onclick = function () {
+                $(this).next('ul').toggle();
+            };
+
+            $('.dropdown-menu a.test').on("click", function (e) {
+                $(this).next('ul').toggle();
+                e.stopPropagation();
+                e.preventDefault();
+            });
+        });
+    </script>
+
+</body>

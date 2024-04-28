@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <%- include('../partials/head'); %>
+</head>
+
+<body class="container">
+
+    <header>
+        <%- include('../partials/header'); %>
+    </header>
+    <main>
+        <div class="col-sm-8">
+            <div class="jumbotron">
+                <h1><data id="info" value="<%= ids %>">Child Information</data></h1>
+
+                <% if (childinfo) { %>
+
+                <h2><%= childinfo["firstname"] %> <%= childinfo["lastname"] %></h2>
+
+
+                <h2>Settings</h2>
+                <label for="fname">Child First Name:</label>
+                <input type="text" value="<%= childinfo["firstname"] %>" id="fname" name="fname"><br><br>
+
+                <label for="lname">Child Last Name:</label>
+                <input type="text" value="<%= childinfo["lastname"] %>" id="lname" name="lname"><br><br>
+                <%- include('../partials/directory_dropdown'); %>
+
+                <p><button type="button">Relocate Child</button></p>
+                <% } %>
+                <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.min.js"></script>
+                <script>
+                    function updateSettings() {
+                        let apiPath = document.getElementById('info').value;
+
+                        let first_name = document.getElementById('fname').value;
+                        let last_name = document.getElementById('lname').value;
+
+                        let gobackUrl = apiPath;
+
+                        const dataDict = {
+                            firstname: first_name,
+                            lastname: last_name
+                        };
+                        const jesus = `?firstname=${first_name}&lastname=${last_name}`
+                        axios.put(`http://127.0.0.1:5000/api/lookup/${apiPath}${jesus}`, dataDict)
+                            .then(response => {
+                                document.getElementById("outputText").innerHTML = "Changes saved!";
+                                window.location.href = "./";
+                            })
+                            .catch(error => {
+                                // Handle errors
+                            });
+                    };
+
+                    function deleteChild() {
+                        let apiPath = document.getElementById('info').value;
+
+                        axios.delete(`http://127.0.0.1:5000/api/lookup/${apiPath}`)
+                            .then(response => {
+                                alert("Child deleted from existence");
+                                window.location.href = "../";
+                            })
+                            .catch(error => {
+                                // Handle errors
+                            });
+                    };
+                </script>
+
+                <ul id="outputText" display="none" style="list-style-type: none; padding: 0; margin: 0;"></ul>
+                <button type="button" onclick="updateSettings()">Save Changes</button>
+                <p></p>
+                <p><button type="button" onclick="deleteChild()">Delete Child</button></p>
+
+            </div>
+
+        </div>
+        <ul><a href="../">
+                <b>Go Back</b></a></ul>
+        </div>
+
+    </main>
+
+    <footer>
+        <%- include('../partials/footer'); %>
+    </footer>
+
+</body>
+
+</html>

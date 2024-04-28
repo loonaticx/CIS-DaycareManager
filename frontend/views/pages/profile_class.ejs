@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <%- include('../partials/head'); %>
+</head>
+
+<body class="container">
+
+    <header>
+        <%- include('../partials/header'); %>
+    </header>
+
+    <main>
+        <div class="col-sm-8">
+            <style>
+                table,
+                th,
+                td {
+                    border: 1px solid black;
+                }
+            </style>
+            <div class="jumbotron">
+                <h1><b><%= classroomName %></b> Classroom Information</h1>
+
+                <ul>
+                    <% if (classinfo) { %>
+                    <h3>Teacher Directory</h3>
+                    <table style="width:100%">
+                        <tr>
+                            <th>Teacher Name</th>
+                            <th>Available Slots</th>
+                            <th>Children</th>
+                        </tr>
+
+                        <% Object.keys(teachers).forEach(function(teacherId) { %>
+                        <tr>
+                            <td>
+                                <ul>
+                                    <a href="<%= teachers[teacherId].uuid %>/" target="_parent">
+                                        <strong>
+                                            <%= teachers[teacherId].firstname %>
+                                            <%= teachers[teacherId].lastname %>
+                                        </strong>
+                                    </a>
+                                </ul>
+                            </td>
+                            <td><%= 10 - Object.keys(teachers[teacherId].Children).length; %> / 10</td>
+                            <td>
+                                <% Object.keys(teachers[teacherId].Children).forEach(function(childId) { %>
+                                <ul>
+                                    <a href="/facility/<%=facilityId%>/<%=classroomId %>/<%=teachers[teacherId].uuid %>/<%= teachers[teacherId].Children[childId].uuid %>"
+                                        target="_parent">
+                                        <%= teachers[teacherId].Children[childId].firstname %>
+                                        <%=  teachers[teacherId].Children[childId].lastname %>
+                                    </a>
+                                </ul>
+                                <% }); %>
+                            </td>
+                            <% }); %>
+                        </tr>
+
+
+                    </table>
+                    <% } %>
+
+                </ul>
+                <%- include('../partials/create_teacher'); %>
+
+                <h2>Settings</h2>
+                <label for="classname">Classroom Name:</label>
+                <input type="text" value="<%= classroomName %>" id="classname" name="classname"><br><br>
+
+                <label for="classcapacity">Maximum Capacity:</label>
+                <input type="text" value="<%= classroomCapacity %>" id="classcapacity" name="classcapacity"><br><br>
+
+            </div>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.min.js"></script>
+            <script>
+                function updateSettings() {
+                    let apiPath = document.getElementById('info').value;
+
+                    let class_name = document.getElementById('classname').value;
+                    let class_capacity = document.getElementById('classcapacity').value;
+
+                    let gobackUrl = apiPath;
+                    alert(gobackUrl);
+
+                    const dataDict = {
+                        classname: class_name,
+                        classcapacity: class_capacity
+                    };
+                    if (class_name.length === 0 || class_capacity.length === 0) {
+                        alert("Name cannot be blank!")
+                        return;
+                    }
+                    const jesus = `?name=${class_name}&capacity=${class_capacity}`
+                    axios.put(`http://127.0.0.1:5000/api/lookup/${apiPath}${jesus}`, dataDict)
+                        .then(response => {
+                            document.getElementById("outputText").innerHTML = "Changes saved!";
+                            window.location.href = "./";
+                        })
+                        .catch(error => {
+                            // Handle errors
+                        });
+                };
+
+                function deleteClassroom() {
+                    let apiPath = document.getElementById('info').value;
+
+                    axios.delete(`http://127.0.0.1:5000/api/lookup/${apiPath}`)
+                        .then(response => {
+                            alert("Deleted classroom from existence");
+                            window.location.href = "../";
+                        })
+                        .catch(error => {
+                            // Handle errors
+                        });
+                };
+            </script>
+
+            <ul id="outputText" display="none" style="list-style-type: none; padding: 0; margin: 0;"></ul>
+            <button type="button" onclick="updateSettings()">Save Changes</button>
+            <p></p>
+            <p><button type="button" onclick="deleteClassroom()">Delete Classroom</button></p>
+            <ul><a href="../../<%=facilityId%>">
+                    <b>Go Back</b></a></ul>
+        </div>
+
+    </main>
+
+    <footer>
+        <%- include('../partials/footer'); %>
+    </footer>
+
+</body>
+
+</html>

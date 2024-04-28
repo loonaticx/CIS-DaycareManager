@@ -1,0 +1,99 @@
+<div class="col-sm-8">
+    <style>
+        table,
+        th,
+        td {
+            border: 1px solid black;
+        }
+    </style>
+    <div class="jumbotron">
+        <h1>Welcome to <b><%= facilityName %>'s</b> Daycare</h1>
+        <ul>
+            <% if (classrooms) { %>
+            <h2>Classroom Directory</h2>
+            <table style="width:100%">
+                <tr>
+                    <th>Classroom Name</th>
+                    <th>Occupied Slots</th>
+                    <th>Teachers</th>
+                </tr>
+                <% Object.keys(classrooms).forEach(function(className) { %>
+                <tr>
+                    <td><strong><a href="/facility/<%=facilityId%>/<%= classrooms[className].uuid %>/"
+                                target="_parent"><%= className %></a></strong></td>
+                    <td><%= classrooms[className].remaining_slots %>/<%= classrooms[className].capacity %></td>
+                    <td>
+                        <% Object.keys(classrooms[className].teachers).forEach(function(teacherId) { %>
+                        <ul><a href="/facility/<%=facilityId%>/<%= classrooms[className].uuid %>/<%= classrooms[className].teachers[teacherId].uuid %>"
+                                target="_parent">
+                                <%= classrooms[className].teachers[teacherId].firstname %>
+                                <%= classrooms[className].teachers[teacherId].lastname %></a></ul>
+                        <% }); %>
+                    </td>
+
+                </tr>
+
+                <% }); %>
+                <%- include('../partials/create_classroom'); %>
+
+            </table>
+            <% } %>
+
+        </ul>
+
+        <div class="settingstab jumbotron">
+            <h2>Settings</h2>
+            <label for="fname">Facility Name:</label>
+            <input type="text" value="<%= facilityName %>" id="fname" name="fname"><br><br>
+
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.min.js"></script>
+            <script>
+                function updateSettings() {
+                    let apiPath = document.getElementById('info').value;
+
+                    let facility_name = document.getElementById('fname').value;
+
+                    let gobackUrl = apiPath;
+
+                    const dataDict = {
+                        facilityname: facility_name,
+                    };
+                    if (facility_name.length === 0) {
+                        alert("Name cannot be blank!")
+                        return;
+                    }
+                    const jesus = `?name=${facility_name}`
+                    axios.put(`http://127.0.0.1:5000/api/lookup/${apiPath}${jesus}`, dataDict)
+                        .then(response => {
+                            document.getElementById("outputText").innerHTML = "Changes saved!";
+                            //window.location.href = "./";
+                        })
+                        .catch(error => {
+                            // Handle errors
+                        });
+                };
+
+                function deleteFacility() {
+                    let apiPath = document.getElementById('info').value;
+
+                    axios.delete(`http://127.0.0.1:5000/api/lookup/${apiPath}`)
+                        .then(response => {
+                            alert("Facility deleted from existence");
+                            window.location.href = "../facility/";
+                        })
+                        .catch(error => {
+                            // Handle errors
+                        });
+                };
+            </script>
+
+            <ul id="outputText" display="none" style="list-style-type: none; padding: 0; margin: 0;"></ul>
+            <button type="button" onclick="updateSettings()">Save Changes</button>
+            <p></p>
+            <p><button type="button" onclick="deleteFacility()">Delete Facility</button></p>
+
+        </div>
+    </div>
+    <ul><a href="/facilities">
+            <b>Go Back</b></a></ul>
+</div>
