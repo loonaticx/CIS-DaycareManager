@@ -48,9 +48,10 @@ def jsonify(returnInfo):
     Wrapper to remove specific entries from being
     put out in the API
     """
+
     def recursive(data):
         newData = {}
-        if data:
+        if data and isinstance(data, dict):
             for k, v in data.items():
                 try:
                     if "_badids" in k:
@@ -85,6 +86,7 @@ def rejectNoToken():
 
 # endregion
 
+
 """
 Facility Management
 """
@@ -92,7 +94,7 @@ Facility Management
 
 # region
 
-@app.route('/api/lookup/facility', methods = ['GET'], strict_slashes = False)
+@app.route('/api/lookup/facilities', methods = ['GET'], strict_slashes = False)
 def all_facilities():
     # Fetch all entries
     facilityDict = Database.getTableContents(FacilityInstanceDBEntry)
@@ -116,14 +118,17 @@ def facility_info(facilityId):
         facilityId = int(getIDfromUUID(facilityId, FacilityInstanceDBEntry, _facilityDB))
 
     # if False: good if we want to add, bad if we are trying to get
-    facilityDbEntry, facilityDataDict = getFacilityData(int(facilityId))
+    facilityDbEntry, facilityDataDict = getFacilityData(
+        facilityId
+    )
+
     if not facilityDataDict and request.method != "POST":
-        abort(400, 'Invalid Facility ID')
+        abort(400, 'Improper Facility ID given')
     facilityIdOccupied = bool(facilityDbEntry or facilityDataDict)
 
     if request.method == "GET":
         facilityDbEntries: list[FacilityInstanceDBEntry] = _facilityDB.filter_by(id = facilityId).all()
-        returnInfo = Database.getTableContents(FacilityInstanceDBEntry, facilityDbEntries)
+        returnInfo = Database.getTableContents(FacilityInstanceDBEntry, facilityDbEntries, wantIdAsKey = False)
     elif request.method == "POST":
         if facilityIdOccupied:
             # Return error, you cant create with the given ID
@@ -153,6 +158,7 @@ def getFacilityData(facilityId: int | str):
     facilityDbEntry: FacilityInstanceDBEntry = _facilityDB.filter_by(
         id = facilityId,
     ).first()
+
     facilityDataDict = Database.getTableContents(FacilityInstanceDBEntry, [facilityDbEntry])
     return facilityDbEntry, facilityDataDict
 
@@ -276,7 +282,7 @@ def classroom_info(facilityId, classroomId):
         classroomId = int(getIDfromUUID(classroomId, ClassroomInstanceDBEntry, _classroomDB))
 
     facilityDbEntry, facilityDataDict = getFacilityData(facilityId)
-    if not facilityDataDict:
+    if not facilityDbEntry:
         abort(400, 'Invalid Facility ID')
 
     classroomDbEntry, classroomDataDict = getClassroomData(facilityId, classroomId)
@@ -297,6 +303,8 @@ def classroom_info(facilityId, classroomId):
         for teacherId, teacherEntry in teacherDataDict.items():
             # if teacherEntry.classroom_id == classroomId:
             classroomDataDict["Teachers"][teacherId] = dict(**teacherEntry)
+        # classroomDataDict["parent_uuid"] = facilityDbEntry.uuid
+        classroomDataDict["parent_name"] = facilityDbEntry.name
 
         returnInfo = classroomDataDict
 
@@ -311,6 +319,7 @@ def classroom_info(facilityId, classroomId):
         # Update the data dict with our new entry so that we can send a verified output
         classroomDataDict = Database.getTableContents(ClassroomInstanceDBEntry)
         returnInfo = classroomDataDict.get(int(newClassroomEntry.id))
+        classroomDbEntry = newClassroomEntry
 
     elif request.method == "PUT":
         classroomDbEntry, classroomDataDict = RequestHelper.doPut(request, classroomDbEntry, classroomDataDict)
@@ -321,6 +330,7 @@ def classroom_info(facilityId, classroomId):
 
     elif request.method == 'DELETE':
         # Information Remove
+        facilityDbEntry.classrooms.remove(classroomDbEntry)
         Database.session.delete(classroomDbEntry)
         Database.session.commit()
         returnInfo = "Classroom Deleted"
@@ -419,17 +429,18 @@ def teacher_info(facilityId, classroomId, teacherId):
         returnInfo = teacherDataDict.get(int(newTeacherEntry.id))
 
     elif request.method == "PUT":
-        # teacherDataDict = teacherDataDict.get(int(teacherId))
         teacherDbEntry, teacherDataDict = RequestHelper.doPut(request, teacherDbEntry, teacherDataDict)
         # Commit
         Database.session.commit()
         returnInfo = teacherDataDict
 
     elif request.method == 'DELETE':
+        classroomDbEntry.teachers.remove(teacherDbEntry)
         # Information Remove
         Database.session.delete(teacherDbEntry)
         Database.session.commit()
         returnInfo = "Teacher Deleted"
+    # Maybe we can do the resolve magic here to determine if we can add a new child
 
     outDict = {
         "metadata": {
@@ -524,12 +535,13 @@ def child_info(facilityId, classroomId, teacherId, childId):
         abort(400, 'Invalid classroom ID.')
     teacherDbEntry, allTeacherDataDict = getTeacherData(classroomDbEntry)
     teacherDbEntry = teacherDbEntry.get(teacherId)
-    teacherDataDict = allTeacherDataDict.pop(teacherId)
+    teacherDataDict = allTeacherDataDict.get(teacherId)
 
     currentSpots = classroomDataDict[classroomId]['capacity']
-    currentOccupied = len(teacherDataDict["Children"])
+    currentOccupiedWithTeacher = len(teacherDbEntry.children)
+    currentOccupiedWithClassroom = 0
     for _, otherTeachers in allTeacherDataDict.items():
-        currentOccupied += len(otherTeachers["Children"])
+        currentOccupiedWithClassroom += len(otherTeachers["Children"])
 
     childDbEntry, childDataDict = getChildData(teacherDbEntry)
     if not childDbEntry and request.method != "POST":
@@ -563,7 +575,6 @@ def child_info(facilityId, classroomId, teacherId, childId):
         returnInfo = childDataDict.get(int(newChildEntry.id))
 
     elif request.method == "PUT":
-        childDataDict = childDataDict.get(int(childId))
         childDbEntry, childDataDict = RequestHelper.doPut(request, childDbEntry, childDataDict)
         # Commit
         Database.session.commit()
@@ -571,9 +582,9 @@ def child_info(facilityId, classroomId, teacherId, childId):
 
     elif request.method == 'DELETE':
         # Information Remove
+        teacherDbEntry.children.remove(childDbEntry)
         Database.session.delete(childDbEntry)
         Database.session.commit()
-        # Todo: Detach from teacher
         # KILL CHILD
         returnInfo = "Child Deleted"
 
@@ -690,5 +701,6 @@ def getChildData(teacherDbEntry):
 
 
 # endregion
+
 
 app.run(Config.FLASK_HOST, debug = Config.FLASK_WANT_DEBUG)

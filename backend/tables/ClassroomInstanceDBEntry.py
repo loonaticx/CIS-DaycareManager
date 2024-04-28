@@ -44,7 +44,7 @@ class ClassroomInstanceDBEntry(Base):
     def badids(self):
         return [int(x) for x in self._badids.split(';') if x]
 
-    @teacherids.setter
+    @badids.setter
     def badids(self, value):
         self._badids += '%s;' % value
 
