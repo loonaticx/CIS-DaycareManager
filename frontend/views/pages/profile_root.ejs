@@ -1,0 +1,19 @@
+<div class="col-sm-8">
+    <div class="jumbotron">
+        <h1> Facility Directory </h1>
+        <ul>
+            <% if (facilities) { %>
+
+            <% Object.keys(facilities).forEach(function(facility) { %>
+            <li>
+                <strong><a href="../facility/<%= facilities[facility].uuid %>"
+                        target="_parent"><%= facilities[facility].name %>'s Daycare</a></strong>
+            </li>
+            <% }); %>
+
+            <% } %>
+
+        </ul>
+        <%- include('../partials/create_facility'); %>
+    </div>
+</div>
