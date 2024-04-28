@@ -79,6 +79,10 @@ def generate_token():
     return resp
 
 
+def rejectNoToken():
+    return abort(418, 'Invalid token. (Generate one with /api/generate)')
+
+
 # endregion
 
 """
@@ -101,7 +105,7 @@ def facility_info(facilityId):
     :param facilityId: The UUID of the facility
     """
     if not tokenGenerator.isTokenValid(request.cookies.get('auth_token')):
-        abort(400, 'Invalid token. (Generate one with /api/generate)')
+        return rejectNoToken()
     returnInfo = {}
 
     # Database ID or UUID?
@@ -184,7 +188,7 @@ Classroom Management
 @app.route('/api/lookup/classrooms', methods = ['GET'], strict_slashes = False)
 def all_classrooms():
     if not tokenGenerator.isTokenValid(request.cookies.get('auth_token')):
-        abort(400, 'Invalid token. (Generate one with /api/generate)')
+        return rejectNoToken()
     # Fetch all entries
     classroomDict = Database.getTableContents(ClassroomInstanceDBEntry)
     return jsonify(classroomDict)
@@ -193,6 +197,7 @@ def all_classrooms():
 @app.route('/api/lookup/<facilityId>/', methods = ['GET'], strict_slashes = True)
 def all_classrooms_in_facility(facilityId):
     if not tokenGenerator.isTokenValid(request.cookies.get('auth_token')):
+        return rejectNoToken()
 
     # Database ID or UUID?
     passedIdType = request.args.get('idType', "uuid")
@@ -258,7 +263,7 @@ def all_classrooms_in_facility(facilityId):
 @app.route('/api/lookup/<facilityId>/<classroomId>', methods = ['GET', 'POST', 'PUT', 'DELETE'], strict_slashes = False)
 def classroom_info(facilityId, classroomId):
     if not tokenGenerator.isTokenValid(request.cookies.get('auth_token')):
-        abort(400, 'Invalid token. (Generate one with /api/generate)')
+        return rejectNoToken()
     returnInfo = {}
 
     # Database ID or UUID?
@@ -364,7 +369,7 @@ Teacher Management
            strict_slashes = False)
 def teacher_info(facilityId, classroomId, teacherId):
     if not tokenGenerator.isTokenValid(request.cookies.get('auth_token')):
-        abort(400, 'Invalid token. (Generate one with /api/generate)')
+        return rejectNoToken()
     returnInfo = {}
 
     # Database ID or UUID?
@@ -494,7 +499,7 @@ Child Management
            strict_slashes = False)
 def child_info(facilityId, classroomId, teacherId, childId):
     if not tokenGenerator.isTokenValid(request.cookies.get('auth_token')):
-        abort(400, 'Invalid token. (Generate one with /api/generate)')
+        return rejectNoToken()
     returnInfo = {}
 
     # Database ID or UUID?
