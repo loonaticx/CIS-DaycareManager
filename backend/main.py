@@ -1,6 +1,7 @@
 import copy
 
 import flask
+from dataclasses import dataclass
 
 from auth.TokenGenerator import TokenGenerator
 from base.RequestHelper import RequestHelper
@@ -15,13 +16,31 @@ app = Flask(__name__)
 # -header-i
 CORS(app)
 
+
+# Zipped up to help with the traveling costs
+@dataclass
+class TableDatabaseQueries:
+    database = Database
+    facilityDB = Database.session.query(FacilityInstanceDBEntry)
+    classroomDB = Database.session.query(ClassroomInstanceDBEntry)
+    teacherDB = Database.session.query(TeacherInstanceDBEntry)
+    childDB = Database.session.query(ChildInstanceDBEntry)
+
+    def all(self):
+        return [self.facilityDB, self.classroomDB, self.teacherDB, self.childDB]
+
+
+DatabaseQueries = TableDatabaseQueries()
+
 # Grab our tables
-_facilityDB = Database.session.query(FacilityInstanceDBEntry)
-_classroomDB = Database.session.query(ClassroomInstanceDBEntry)
-_teacherDB = Database.session.query(TeacherInstanceDBEntry)
-_childDB = Database.session.query(ChildInstanceDBEntry)
+_facilityDB = DatabaseQueries.facilityDB
+_classroomDB = DatabaseQueries.classroomDB
+_teacherDB = DatabaseQueries.teacherDB
+_childDB = DatabaseQueries.childDB
 
 tokenGenerator = TokenGenerator()
+
+from base.TableDataHelper import *
 
 
 def jsonify(returnInfo):
@@ -199,9 +218,41 @@ def all_classrooms_in_facility(facilityId):
     for classId, classData in classroomDataDict.items():
         className = classData.pop("name")
         classData["id"] = classId
+        classData["parent"] = facilityUUID
+        # [x for x in teacherDbEntry.children]
+        # classData["teachers"] = Database.getTableContents(ClassroomInstanceDBEntry, [x for x in
+        # classroomDbEntry.teachers])
+        classData["teachers"] = ClassroomTableHelpers.getTeacherDataEntries(classData, DatabaseQueries)
+        classData["current_capacity"] = ClassroomTableHelpers.getCurrentClassCapacity(classData, DatabaseQueries)
+        classData["max_slots_possible"] = ClassroomTableHelpers.getMaximumClassCapacity(classData, DatabaseQueries)
+        classData["remaining_slots"] = classData["max_slots_possible"] - ClassroomTableHelpers.getOpenClassSlots(
+            classData, DatabaseQueries)
         prettyDict[className] = dict(**classData)
 
-    return jsonify(prettyDict)
+    # Grab metadata
+    facilityDbEntry, facilityDataDict = getFacilityData(facilityId)
+
+    outDict = {
+        "metadata": {
+            "facility_name": facilityDbEntry.name,
+            "facility_uuid": facilityDbEntry.uuid,
+            "method_src": "all_classrooms_in_facility",
+        },
+        "content": prettyDict,
+    }
+
+    return jsonify(outDict)
+
+
+# metaTree = {
+#     ["facilityName", "uuid"]: {
+#         ["className", "uuid"]: {
+#             ["teacherName", "uuid"]: {
+#                 ["studentName", "uuid"]
+#             }
+#         }
+#     }
+# }
 
 
 @app.route('/api/lookup/<facilityId>/<classroomId>', methods = ['GET', 'POST', 'PUT', 'DELETE'], strict_slashes = False)
@@ -269,7 +320,20 @@ def classroom_info(facilityId, classroomId):
         Database.session.commit()
         returnInfo = "Classroom Deleted"
 
-    return jsonify(returnInfo)
+    outDict = {
+        "metadata": {
+            "facility_name": facilityDbEntry.name,
+            "facility_uuid": facilityDbEntry.uuid,
+            "classroom_name": classroomDbEntry.name,
+            # classroom_uuid is already content.uuid
+            "method_src": "classroom_info",
+            "occupied_slots": ClassroomTableHelpers.getCurrentClassCapacity(classroomDataDict, DatabaseQueries),
+            "unoccupied_slots": ClassroomTableHelpers.getOpenClassSlots(classroomDataDict, DatabaseQueries),
+        },
+        "content": returnInfo,
+    }
+
+    return jsonify(outDict)
 
 
 def getClassroomData(facilityId: int | str, classroomId: int | str):
@@ -326,7 +390,6 @@ def teacher_info(facilityId, classroomId, teacherId):
     teacherIdOccupied = teacherId in classroomDbEntry.teacherids
 
     teacherDbEntry, teacherDataDict = getTeacherData(classroomDbEntry)
-
     teacherDbEntry = teacherDbEntry.get(teacherId)
     teacherDataDict = teacherDataDict.get(teacherId)
 
@@ -347,6 +410,7 @@ def teacher_info(facilityId, classroomId, teacherId):
 
         # Update the data dict with our new entry so that we can send a verified output
         teacherDataDict = Database.getTableContents(TeacherInstanceDBEntry)
+        teacherDbEntry = newTeacherEntry
         returnInfo = teacherDataDict.get(int(newTeacherEntry.id))
 
     elif request.method == "PUT":
@@ -362,7 +426,24 @@ def teacher_info(facilityId, classroomId, teacherId):
         Database.session.commit()
         returnInfo = "Teacher Deleted"
 
-    return jsonify(returnInfo)
+    outDict = {
+        "metadata": {
+            "facility_name": facilityDbEntry.name,
+            "facility_uuid": facilityDbEntry.uuid,
+            "classroom_uuid": classroomDbEntry.uuid,
+            "classroom_name": classroomDbEntry.name,
+            "method_src": "teacher_info",
+            "child_occupied_slots": len(teacherDbEntry.children),
+            "classroom_occupied_slots": ClassroomTableHelpers.getCurrentClassCapacity(
+                classroomDataDict, DatabaseQueries
+            ),
+            "classroom_unoccupied_slots": ClassroomTableHelpers.getOpenClassSlots(classroomDataDict, DatabaseQueries),
+
+        },
+        "content": returnInfo,
+    }
+
+    return jsonify(outDict)
 
 
 def getTeacherData(classroomDbEntry):
@@ -491,7 +572,98 @@ def child_info(facilityId, classroomId, teacherId, childId):
         # KILL CHILD
         returnInfo = "Child Deleted"
 
-    return jsonify(returnInfo)
+    child_metadata = dict()
+    if childDbEntry:
+        child_metadata = {
+            "child_name": f"{childDbEntry.firstname} {childDbEntry.lastname}",
+            "child_id": childDbEntry.uuid,
+        }
+
+    outDict = {
+        "metadata": {
+            "facility_name": facilityDbEntry.name,
+            "facility_uuid": facilityDbEntry.uuid,
+            "classroom_name": classroomDbEntry.name,
+            "classroom_uuid": classroomDbEntry.uuid,
+            "teacher_name": f"{teacherDbEntry.firstname} {teacherDbEntry.lastname}",
+            "teacher_uuid": teacherDbEntry.uuid,
+            **child_metadata
+
+        },
+        "content": returnInfo,
+    }
+
+    return jsonify(outDict)
+
+
+@app.route('/api/tree', methods = ['GET'],
+           strict_slashes = False)
+def tree():
+    if not tokenGenerator.isTokenValid(request.cookies.get('auth_token')):
+        return rejectNoToken()
+    level = int(request.args.get('level', "1"))
+
+    facilityDatas = Database.getTableContents(FacilityInstanceDBEntry, wantIdAsKey = False)
+    if not isinstance(facilityDatas, list):
+        facilityDatas = [facilityDatas]
+    data = dict()
+    for facilityDataDict in facilityDatas:
+        classDataEntries = dict()
+        innerFacilityDict = data[facilityDataDict.get("name")] = dict()
+        if level > 1:
+            for classDBEntry in FacilityTableHelpers.getClassroomDBEntries(facilityDataDict, DatabaseQueries):
+                classroomDataDict = Database.getTableContents(
+                    ClassroomInstanceDBEntry, [classDBEntry], wantIdAsKey = False
+                )
+                teacherDataEntries = []
+                innerClassDict = classDataEntries[classroomDataDict.get("name")] = dict()
+                if level > 2:
+                    for teacherDbEntry in ClassroomTableHelpers.getTeacherDBEntries(classroomDataDict, DatabaseQueries):
+                        teacherDataDict = Database.getTableContents(
+                            TeacherInstanceDBEntry, [teacherDbEntry], wantIdAsKey = False
+                        )
+                        teacherDataEntries.append({
+                            "name": TeacherTableHelpers.getFullname(teacherDataDict),
+                            "uuid": teacherDataDict.get("uuid")
+                        })
+                    # classDataEntries[classroomDataDict] = teacherDataEntries
+                    innerClassDict["teachers"] = teacherDataEntries
+                innerClassDict["uuid"] = classroomDataDict.get("uuid")
+            innerFacilityDict["classrooms"] = classDataEntries
+        innerFacilityDict["uuid"] = facilityDataDict.get("uuid")
+
+    DirectoryTree = [
+        {
+            "FacilityNameA": [
+                {
+                    "ClassroomNameA": [
+                        "TeacherNameA", "TeacherNameB"
+                    ]
+                }
+            ]
+        }
+    ]
+
+    # Give us a tree
+    test = {
+        "Facilities": [
+            {
+                "FacilityNameA": [
+                    {
+                        "ClassroomNameA": [
+                            "TeacherNameA", "TeacherNameB"
+                        ]
+                    }
+                ]
+            }
+
+        ]
+
+    }
+
+    outDict = data
+
+    return jsonify(outDict)
 
 
 def getChildData(teacherDbEntry):
