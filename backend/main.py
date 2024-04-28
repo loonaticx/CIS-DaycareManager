@@ -104,7 +104,7 @@ def facility_info(facilityId):
     elif request.method == "POST":
         if facilityIdOccupied:
             # Return error, you cant create with the given ID
-            abort(400, 'ID Already occupied.')
+            abort(400, 'Facility ID Already occupied.')
         newFacilityEntry = FacilityInstanceDBEntry(FacilityInstance(**request.args))
         Database.generateEntry(newFacilityEntry)
         # Update the data dict with our new entry so that we can send a verified output
@@ -226,7 +226,7 @@ def classroom_info(facilityId, classroomId):
     classroomDbEntry, classroomDataDict = getClassroomData(facilityId, classroomId)
     if request.method != "POST":
         if not classroomDataDict:
-            abort(400, 'Invalid Classroom ID')
+            abort(400, 'Improper Classroom ID given')
         else:
             classroomDataDict = classroomDataDict.get(int(classroomId))
             classroomDataDict["Teachers"] = {}
@@ -248,7 +248,7 @@ def classroom_info(facilityId, classroomId):
         # TODO: reject if input name already exists in db
         if classroomIdOccupied:
             # Return error, you cant create with the given ID
-            abort(400, 'ID Already occupied.')
+            abort(400, 'Classroom ID Already occupied.')
         newClassroomEntry = ClassroomInstanceDBEntry(ClassroomInstance(**request.args))
         newClassroomEntry.facility_id = facilityId
         Database.generateEntry(newClassroomEntry)
@@ -272,7 +272,12 @@ def classroom_info(facilityId, classroomId):
     return jsonify(returnInfo)
 
 
-def getClassroomData(facilityId:int | str, classroomId:int|str):
+def getClassroomData(facilityId: int | str, classroomId: int | str):
+    """
+    :param int|str facilityId: internal id (NOT uuid)
+    :param int|str classroomId: internal id (NOT uuid)
+
+    """
     classroomDbEntry: ClassroomInstanceDBEntry = _classroomDB.filter_by(
         facility_id = facilityId,
         id = classroomId
@@ -331,7 +336,7 @@ def teacher_info(facilityId, classroomId, teacherId):
     elif request.method == "POST":
         if teacherIdOccupied:
             # Return error, you cant create a teacher with the given ID
-            abort(400, 'ID already occupied.')
+            abort(400, 'Teacher ID already occupied.')
         newTeacherEntry = TeacherInstanceDBEntry(TeacherInstance(**request.args))
         newTeacherEntry.classroom_id = classroomId
         Database.generateEntry(newTeacherEntry)
@@ -455,8 +460,8 @@ def child_info(facilityId, classroomId, teacherId, childId):
     elif request.method == "POST":
         if childIdOccupied:
             # Return error, you cant create a child with the given ID
-            abort(400, 'ID Already occupied.')
-        if currentSpots - currentOccupied <= 0:
+            abort(400, 'Child ID Already occupied.')
+        if currentSpots - currentOccupiedWithClassroom <= 0:
             abort(400, 'Classroom is full.')
 
         if len(teacherDataDict["Children"]) >= 10:
