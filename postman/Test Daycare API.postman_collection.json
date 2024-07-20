@@ -1,0 +1,721 @@
+{
+	"info": {
+		"_postman_id": "a4c57dfd-d2f0-45ef-a863-cd93817e216c",
+		"name": "Test Daycare API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "33099566"
+	},
+	"item": [
+		{
+			"name": "Scenario: Teacher Capacity Limit",
+			"item": [
+				{
+					"name": "Classroom: Add Small Classroom",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "localhost:5000/api/lookup/3/0?name=Very Small Classroom&capacity=5",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"lookup",
+								"3",
+								"0"
+							],
+							"query": [
+								{
+									"key": "name",
+									"value": "Very Small Classroom"
+								},
+								{
+									"key": "capacity",
+									"value": "5"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Facility: View Classrooms",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:5000/api/lookup/3/",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"lookup",
+								"3",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Teacher: Add to Small Classroom",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "localhost:5000/api/lookup/3/18/0?firstname=Barack&lastname=Obama",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"lookup",
+								"3",
+								"18",
+								"0"
+							],
+							"query": [
+								{
+									"key": "firstname",
+									"value": "Barack"
+								},
+								{
+									"key": "lastname",
+									"value": "Obama"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Classroom: View Teachers",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:5000/api/lookup/3/18/",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"lookup",
+								"3",
+								"18",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Classroom: Increase Capacity Limit",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "localhost:5000/api/lookup/3/18?name=Very Large Classroom&capacity=200",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"lookup",
+								"3",
+								"18"
+							],
+							"query": [
+								{
+									"key": "name",
+									"value": "Very Large Classroom"
+								},
+								{
+									"key": "capacity",
+									"value": "200"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Child: Add to Teacher",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "localhost:5000/api/lookup/3/9/15/0?firstname=Annoying&lastname=Child",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"lookup",
+								"3",
+								"9",
+								"15",
+								"0"
+							],
+							"query": [
+								{
+									"key": "firstname",
+									"value": "Annoying"
+								},
+								{
+									"key": "lastname",
+									"value": "Child"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Demo",
+			"item": [
+				{
+					"name": "Facility: Get All (Demo)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:5000/api/lookup/facility",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"lookup",
+								"facility"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Facility: Get Contents (Demo)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:5000/api/lookup/1/",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"lookup",
+								"1",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Classroom: Get Contents (Demo)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:5000/api/lookup/1/1",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"lookup",
+								"1",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Teacher: Get Contents (Demo)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:5000/api/lookup/1/2/",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"lookup",
+								"1",
+								"2",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Child: Get Contents (Demo)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:5000/api/lookup/1/1/1/1",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"lookup",
+								"1",
+								"1",
+								"1",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Auth: Generate Authorization Cookie",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:5000/api/generate",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"generate"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Facility: Get All",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:5000/api/lookup/facility",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"lookup",
+						"facility"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Facility: Add New Entry",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "localhost:5000/api/lookup/0?name=Foobar",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"lookup",
+						"0"
+					],
+					"query": [
+						{
+							"key": "name",
+							"value": "Foobar"
+						}
+					]
+				},
+				"description": "Will fail if the ID is equal to a pre-existing ID."
+			},
+			"response": []
+		},
+		{
+			"name": "Facility: Add New Entry (Fail ID)",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "localhost:5000/api/lookup/1?name=Foobar",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"lookup",
+						"1"
+					],
+					"query": [
+						{
+							"key": "name",
+							"value": "Foobar"
+						}
+					]
+				},
+				"description": "Will fail if the ID is equal to a pre-existing ID."
+			},
+			"response": []
+		},
+		{
+			"name": "Facility: Modify New Entry",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "localhost:5000/api/lookup/3?name=rabooF",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"lookup",
+						"3"
+					],
+					"query": [
+						{
+							"key": "name",
+							"value": "rabooF"
+						}
+					]
+				},
+				"description": "Will fail if the ID is equal to a pre-existing ID."
+			},
+			"response": []
+		},
+		{
+			"name": "Facility: Verify Changes",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:5000/api/lookup/3",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"lookup",
+						"3"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Facility: View Classrooms",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:5000/api/lookup/UsXS8ihs8VPs81gLZRdoXK4Kh_vHTm0K9Ui1J7gRVS4",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"lookup",
+						"UsXS8ihs8VPs81gLZRdoXK4Kh_vHTm0K9Ui1J7gRVS4"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Classroom: Add to New Facility",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "localhost:5000/api/lookup/3/0?name=Da Classroom&capacity=12",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"lookup",
+						"3",
+						"0"
+					],
+					"query": [
+						{
+							"key": "name",
+							"value": "Da Classroom"
+						},
+						{
+							"key": "capacity",
+							"value": "12"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Classroom: Modify New Classroom",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "localhost:5000/api/lookup/3/9?name=dA cLaSsRoOm&capacity=15",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"lookup",
+						"3",
+						"9"
+					],
+					"query": [
+						{
+							"key": "name",
+							"value": "dA cLaSsRoOm"
+						},
+						{
+							"key": "capacity",
+							"value": "15"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Classroom: View Changes",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:5000/api/lookup/3/9",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"lookup",
+						"3",
+						"9"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Teacher: Add to Classroom",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "localhost:5000/api/lookup/3/9/0?firstname=Barack&lastname=Obama",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"lookup",
+						"3",
+						"9",
+						"0"
+					],
+					"query": [
+						{
+							"key": "firstname",
+							"value": "Barack"
+						},
+						{
+							"key": "lastname",
+							"value": "Obama"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Teacher: Modify Teacher",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "localhost:5000/api/lookup/3/9/14?firstname=Tea&lastname=Cher",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"lookup",
+						"3",
+						"9",
+						"14"
+					],
+					"query": [
+						{
+							"key": "firstname",
+							"value": "Tea"
+						},
+						{
+							"key": "lastname",
+							"value": "Cher"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Teacher: View Teacher",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:5000/api/lookup/UsXS8ihs8VPs81gLZRdoXK4Kh_vHTm0K9Ui1J7gRVS4/ECDGW8sHJcnX6-ViTevg1lnWMHLYcoY_3DZ-RtrPwyg/aPhh381ai7-vgsV4U7ajL4V5aj2aPXuCa4k24hlMIWk/zQt-0D6kYXbmJvQzN798BavpfPowTdbDW5cmMCjqutY/",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"lookup",
+						"UsXS8ihs8VPs81gLZRdoXK4Kh_vHTm0K9Ui1J7gRVS4",
+						"ECDGW8sHJcnX6-ViTevg1lnWMHLYcoY_3DZ-RtrPwyg",
+						"aPhh381ai7-vgsV4U7ajL4V5aj2aPXuCa4k24hlMIWk",
+						"zQt-0D6kYXbmJvQzN798BavpfPowTdbDW5cmMCjqutY",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Child: View Changes",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:5000/api/lookup/3/17/23/131",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"lookup",
+						"3",
+						"17",
+						"23",
+						"131"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Child: Add to Teacher",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "localhost:5000/api/lookup/3/9/14/0?firstname=Young&lastname=Child",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"lookup",
+						"3",
+						"9",
+						"14",
+						"0"
+					],
+					"query": [
+						{
+							"key": "firstname",
+							"value": "Young"
+						},
+						{
+							"key": "lastname",
+							"value": "Child"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Child: Modify Child",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "localhost:5000/api/lookup/3/9/14/92?firstname=dgvdfsf&lastname=dfsdfd",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"lookup",
+						"3",
+						"9",
+						"14",
+						"92"
+					],
+					"query": [
+						{
+							"key": "firstname",
+							"value": "dgvdfsf"
+						},
+						{
+							"key": "lastname",
+							"value": "dfsdfd"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
