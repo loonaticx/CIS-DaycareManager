@@ -2,6 +2,8 @@
 
 Created by Erica Miller (2031854) for the Spring 2024 semester.
 
+# [VIDEO LINK](https://www.youtube.com/watch?v=QTXyvSG_gTo)
+
 ## Installation
 
 This program was made with the SQLAlchemy, MySQL connector, and Flask packages.
@@ -25,8 +27,6 @@ To start the show, you can simply run:
 ```
 python main.py
 ```
-
-# [VIDEO LINK](https://www.youtube.com/watch?v=QTXyvSG_gTo)
 
 Please note that you must send a GET request to localhost:5000/api/generate to generate an authentication cookie.
 If you don't you will not be able to access any of the API.
